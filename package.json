@@ -1,0 +1,35 @@
+{
+  "name": "winter-arc-onboarding",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "build:mobile": "pnpm --filter mobile exec expo export --platform web --output-dir dist-check",
+    "preview": "vite preview --host 127.0.0.1",
+    "lint": "eslint packages/domain/src && pnpm --filter mobile lint",
+    "typecheck": "tsc -b && pnpm --filter mobile exec tsc --noEmit && pnpm --filter @winter-arc/domain typecheck",
+    "test": "pnpm --filter mobile test && pnpm --filter @winter-arc/domain test",
+    "format": "prettier --write apps/mobile/src apps/mobile/app.json apps/mobile/eas.json apps/mobile/eslint.config.js apps/mobile/package.json apps/mobile/tsconfig.json packages/domain/src packages/domain/package.json packages/domain/tsconfig.json pnpm-workspace.yaml",
+    "format:check": "prettier --check apps/mobile/src apps/mobile/app.json apps/mobile/eas.json apps/mobile/eslint.config.js apps/mobile/package.json apps/mobile/tsconfig.json packages/domain/src packages/domain/package.json packages/domain/tsconfig.json pnpm-workspace.yaml",
+    "validate": "pnpm lint && pnpm typecheck && pnpm test && pnpm format:check && pnpm build && pnpm build:mobile"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.4",
+    "eslint": "^9",
+    "globals": "^16",
+    "prettier": "^3",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8",
+    "vite": "^7.1.5"
+  }
+}
