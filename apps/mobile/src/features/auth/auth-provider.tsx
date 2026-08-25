@@ -11,11 +11,13 @@ import {
 import { AppState } from 'react-native';
 
 import { isBackendConfigured, requireSupabase, supabase } from '@/data/supabase/client';
+import { type AuthFlowState } from '@/features/boot/resolve-initial-route';
 import { extractAuthCallbackParameters, isTrustedAuthCallbackUrl } from './auth-callback';
 
-type AuthStatus = 'loading' | 'guest' | 'authenticated' | 'unconfigured';
+export type AuthStatus = 'loading' | 'guest' | 'authenticated' | 'unconfigured' | 'error';
 
 type AuthContextValue = {
+  authFlow: AuthFlowState;
   deleteAccount(): Promise<void>;
   requestPasswordReset(email: string): Promise<void>;
   requestPhoneVerification(phone: string): Promise<void>;
@@ -47,6 +49,7 @@ async function consumeAuthUrl(url: string): Promise<void> {
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const [authFlow, setAuthFlow] = useState<AuthFlowState>('standard');
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<AuthStatus>(
     isBackendConfigured ? 'loading' : 'unconfigured',
@@ -64,14 +67,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
       if (!mounted) return;
       if (error) {
         setSession(null);
-        setStatus('guest');
+        setStatus('error');
         return;
       }
       setSession(data.session);
       setStatus(data.session ? 'authenticated' : 'guest');
     });
 
-    const { data: authSubscription } = client.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: authSubscription } = client.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'PASSWORD_RECOVERY') setAuthFlow('passwordRecovery');
+      if (event === 'SIGNED_OUT') setAuthFlow('standard');
       setSession(nextSession);
       setStatus(nextSession ? 'authenticated' : 'guest');
     });
@@ -86,13 +91,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
       if (isTrustedAuthCallbackUrl(url, trustedAuthRedirectUrls)) {
-        void consumeAuthUrl(url).catch(() => undefined);
+        void consumeAuthUrl(url).catch(() => {
+          setSession(null);
+          setStatus('error');
+        });
       }
     });
 
     void Linking.getInitialURL().then((url) => {
       if (url && isTrustedAuthCallbackUrl(url, trustedAuthRedirectUrls)) {
-        void consumeAuthUrl(url).catch(() => undefined);
+        void consumeAuthUrl(url).catch(() => {
+          if (!mounted) return;
+          setSession(null);
+          setStatus('error');
+        });
       }
     });
 
@@ -107,6 +119,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const value = useMemo<AuthContextValue>(
     () => ({
+      authFlow,
       async deleteAccount() {
         const client = requireSupabase();
         const { error } = await client.functions.invoke('delete-account');
@@ -142,6 +155,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       async signIn(email, password) {
         const { error } = await requireSupabase().auth.signInWithPassword({ email, password });
         if (error) throw error;
+        setAuthFlow('standard');
       },
       async signOut() {
         const { error } = await requireSupabase().auth.signOut();
@@ -157,11 +171,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
           password,
         });
         if (error) throw error;
+        setAuthFlow('standard');
       },
       status,
       async updatePassword(password) {
         const { error } = await requireSupabase().auth.updateUser({ password });
         if (error) throw error;
+        setAuthFlow('standard');
       },
       user: session?.user ?? null,
       async verifyPhoneVerification(phone, token) {
@@ -173,7 +189,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         if (error) throw error;
       },
     }),
-    [session, status],
+    [authFlow, session, status],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

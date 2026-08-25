@@ -20,7 +20,7 @@ export default function VerifyEmailScreen() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      router.replace('/(auth)/verify-phone');
+      router.replace('/');
     }
   }, [status]);
 

@@ -30,7 +30,7 @@ export default function SignInScreen() {
     setLoading(true);
     try {
       await signIn(result.data.email, result.data.password);
-      router.replace('/(app)/today');
+      router.replace('/');
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {

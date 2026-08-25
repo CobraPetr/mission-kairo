@@ -1,15 +1,9 @@
-import { Redirect, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { Award, BarChart3, CircleDot, Map, UserRound } from 'lucide-react-native';
 
 import { colors, fontFamilies, layout } from '@/theme/tokens';
-import { useAuth } from '@/features/auth/auth-provider';
 
 export default function AppTabsLayout() {
-  const { status } = useAuth();
-
-  if (status === 'loading') return null;
-  if (status === 'guest') return <Redirect href="/(auth)/sign-in" />;
-
   return (
     <Tabs
       screenOptions={{

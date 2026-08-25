@@ -9,7 +9,7 @@ export default function AuthCallbackScreen() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      router.replace('/(auth)/verify-phone');
+      router.replace('/');
     }
   }, [status]);
 

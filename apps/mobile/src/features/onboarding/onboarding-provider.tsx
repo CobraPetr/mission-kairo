@@ -11,7 +11,9 @@ import {
 
 import { GUEST_WORKSPACE_ID, type OnboardingRepository } from '@/data/repositories';
 import { onboardingRepository } from '@/data/repositories/production';
+import { publicRuntimeConfig } from '@/config/runtime';
 import { useAuth } from '@/features/auth/auth-provider';
+import { canUseGuestWorkspace } from '@/features/boot/development-preview-adapter';
 
 import { createEmptyOnboardingDraft, type OnboardingDraft } from './onboarding-schema';
 import { type EmotionalQuestionId } from './questions';
@@ -21,7 +23,9 @@ const SAVE_DEBOUNCE_MS = 350;
 type OnboardingContextValue = {
   draft: OnboardingDraft;
   hydrated: boolean;
+  hydrationError: boolean;
   resetDraft(): Promise<void>;
+  retryHydration(): void;
   setConsent(consent: OnboardingDraft['consent']): void;
   setActivity(activity: OnboardingDraft['activity']): void;
   setIdentity(identity: OnboardingDraft['identity']): void;
@@ -47,23 +51,30 @@ export function OnboardingProvider({
   const { status, user } = useAuth();
   const [draft, setDraft] = useState(createEmptyOnboardingDraft);
   const [hydratedOwner, setHydratedOwner] = useState<string | null>(null);
+  const [hydrationErrorOwner, setHydrationErrorOwner] = useState<string | null>(null);
+  const [hydrationAttempt, setHydrationAttempt] = useState(0);
   const revision = useRef(0);
   const hydrationRun = useRef(0);
   const lastPersistedAt = useRef<string | null>(null);
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ownerId =
-    status === 'loading' ? null : status === 'authenticated' && user ? user.id : GUEST_WORKSPACE_ID;
+    status === 'authenticated' && user
+      ? user.id
+      : canUseGuestWorkspace(status, publicRuntimeConfig.appEnvironment)
+        ? GUEST_WORKSPACE_ID
+        : null;
   const activeOwner = useRef(ownerId);
-  const hydrated = ownerId !== null && hydratedOwner === ownerId;
+  const hydrationKey = ownerId ? `${ownerId}:${hydrationAttempt}` : null;
+  const hydrated = hydrationKey !== null && hydratedOwner === hydrationKey;
+  const hydrationError = hydrationKey !== null && hydrationErrorOwner === hydrationKey;
 
   useEffect(() => {
     activeOwner.current = ownerId;
   }, [ownerId]);
 
   useEffect(() => {
-    if (!ownerId) return;
-
+    if (!ownerId || !hydrationKey) return;
     const run = hydrationRun.current + 1;
     hydrationRun.current = run;
     let mounted = true;
@@ -82,20 +93,22 @@ export function OnboardingProvider({
       revision.current = stored?.revision ?? 0;
       lastPersistedAt.current = next.updatedAt;
       setDraft(next);
-      setHydratedOwner(ownerId);
+      setHydratedOwner(hydrationKey);
+      setHydrationErrorOwner(null);
     })().catch(() => {
       if (!mounted || hydrationRun.current !== run) return;
       const empty = createEmptyOnboardingDraft();
       revision.current = 0;
       lastPersistedAt.current = empty.updatedAt;
       setDraft(empty);
-      setHydratedOwner(ownerId);
+      setHydratedOwner(null);
+      setHydrationErrorOwner(hydrationKey);
     });
 
     return () => {
       mounted = false;
     };
-  }, [ownerId, repository]);
+  }, [hydrationKey, ownerId, repository]);
 
   useEffect(() => {
     if (!hydrated || !ownerId || draft.updatedAt === lastPersistedAt.current) return;
@@ -127,6 +140,7 @@ export function OnboardingProvider({
     () => ({
       draft,
       hydrated,
+      hydrationError,
       async resetDraft() {
         if (!ownerId) return;
         if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -136,6 +150,10 @@ export function OnboardingProvider({
         revision.current = 0;
         lastPersistedAt.current = empty.updatedAt;
         setDraft(empty);
+        setHydrationErrorOwner(null);
+      },
+      retryHydration() {
+        setHydrationAttempt((attempt) => attempt + 1);
       },
       setConsent(consent) {
         updateDraft((current) => ({ ...current, consent }));
@@ -171,7 +189,7 @@ export function OnboardingProvider({
         updateDraft((current) => ({ ...current, situation }));
       },
     }),
-    [draft, hydrated, ownerId, repository, updateDraft],
+    [draft, hydrated, hydrationError, ownerId, repository, updateDraft],
   );
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;

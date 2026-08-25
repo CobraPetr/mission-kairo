@@ -22,6 +22,11 @@ export type SubscriptionEntitlement = {
   state: 'inactive' | 'trial' | 'active' | 'grace' | 'billingIssue' | 'expired';
 };
 
+export type PlanRecord = {
+  canonical: boolean;
+  plan: WinterArcPlan;
+};
+
 export interface OnboardingRepository {
   claimGuestWorkspace(userId: string): Promise<void>;
   clear(ownerId: WorkspaceOwnerId): Promise<void>;
@@ -41,7 +46,7 @@ export interface ProfileRepository {
 export interface PlanRepository {
   claimGuestWorkspace(userId: string): Promise<void>;
   clear(ownerId: WorkspaceOwnerId): Promise<void>;
-  load(ownerId: WorkspaceOwnerId): Promise<WinterArcPlan | null>;
+  load(ownerId: WorkspaceOwnerId): Promise<PlanRecord | null>;
   save(ownerId: WorkspaceOwnerId, plan: WinterArcPlan): Promise<void>;
 }
 
