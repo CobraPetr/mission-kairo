@@ -4,18 +4,52 @@ export type BootAuthStatus = 'loading' | 'guest' | 'authenticated' | 'unconfigur
 
 export type AppEnvironment = 'development' | 'preview' | 'production';
 
+export type DevelopmentAuthOperation =
+  | 'refreshSession'
+  | 'requestPhoneVerification'
+  | 'resendPhoneVerification'
+  | 'resendVerification'
+  | 'signUp'
+  | 'verifyPhoneVerification';
+
+export type DevelopmentAuthAdapter = {
+  continuationAfter(
+    operation: Extract<DevelopmentAuthOperation, 'refreshSession' | 'verifyPhoneVerification'>,
+  ): '/(app)/today' | '/(auth)/verify-phone' | null;
+  enabled: boolean;
+  handle(operation: DevelopmentAuthOperation): boolean;
+};
+
 export type BootAuthAdapterResult = {
   configuration: 'ready' | 'error';
   developmentPreview: boolean;
   session: SessionState;
 };
 
+export function createDevelopmentAuthAdapter(runtime: {
+  appEnvironment: AppEnvironment;
+  backendConfigured: boolean;
+}): DevelopmentAuthAdapter {
+  const enabled = runtime.appEnvironment === 'development' && !runtime.backendConfigured;
+
+  return {
+    continuationAfter(operation) {
+      if (!enabled) return null;
+      return operation === 'refreshSession' ? '/(auth)/verify-phone' : '/(app)/today';
+    },
+    enabled,
+    handle() {
+      return enabled;
+    },
+  };
+}
+
 export function adaptAuthStatusForBoot(
   status: BootAuthStatus,
-  appEnvironment: AppEnvironment,
+  developmentPreview: boolean,
 ): BootAuthAdapterResult {
   if (status === 'unconfigured') {
-    if (appEnvironment === 'development') {
+    if (developmentPreview) {
       return {
         configuration: 'ready',
         developmentPreview: true,
@@ -37,9 +71,6 @@ export function adaptAuthStatusForBoot(
   };
 }
 
-export function canUseGuestWorkspace(
-  status: BootAuthStatus,
-  appEnvironment: AppEnvironment,
-): boolean {
-  return status === 'guest' || (status === 'unconfigured' && appEnvironment === 'development');
+export function canUseGuestWorkspace(status: BootAuthStatus, developmentPreview: boolean): boolean {
+  return status === 'guest' || (status === 'unconfigured' && developmentPreview);
 }

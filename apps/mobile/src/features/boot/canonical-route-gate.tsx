@@ -1,7 +1,6 @@
 import { Redirect, useSegments } from 'expo-router';
 import { type PropsWithChildren, useMemo } from 'react';
 
-import { publicRuntimeConfig } from '@/config/runtime';
 import { useAuth } from '@/features/auth/auth-provider';
 import { useExecution } from '@/features/execution/execution-provider';
 import { useOnboarding } from '@/features/onboarding/onboarding-provider';
@@ -30,7 +29,7 @@ function guardianApprovalState(
 
 export function CanonicalRouteGate({ children }: PropsWithChildren) {
   const segments = useSegments();
-  const { authFlow, status, user } = useAuth();
+  const { authFlow, developmentPreview, status, user } = useAuth();
   const {
     hydrated: onboardingHydrated,
     hydrationError: onboardingHydrationError,
@@ -50,7 +49,7 @@ export function CanonicalRouteGate({ children }: PropsWithChildren) {
     retryHydration: retryExecutionHydration,
   } = useExecution();
 
-  const auth = adaptAuthStatusForBoot(status, publicRuntimeConfig.appEnvironment);
+  const auth = adaptAuthStatusForBoot(status, developmentPreview);
   const onboardingRoute = onboardingHydrated
     ? ((resolveOnboardingResumeRoute(draft) ?? '/(onboarding)') as OnboardingRoute)
     : null;

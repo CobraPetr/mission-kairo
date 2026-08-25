@@ -11,7 +11,6 @@ import {
 
 import { GUEST_WORKSPACE_ID, type OnboardingRepository } from '@/data/repositories';
 import { onboardingRepository } from '@/data/repositories/production';
-import { publicRuntimeConfig } from '@/config/runtime';
 import { useAuth } from '@/features/auth/auth-provider';
 import { canUseGuestWorkspace } from '@/features/boot/development-preview-adapter';
 
@@ -48,7 +47,7 @@ export function OnboardingProvider({
   children,
   repository = onboardingRepository,
 }: OnboardingProviderProps) {
-  const { status, user } = useAuth();
+  const { developmentPreview, status, user } = useAuth();
   const [draft, setDraft] = useState(createEmptyOnboardingDraft);
   const [hydratedOwner, setHydratedOwner] = useState<string | null>(null);
   const [hydrationErrorOwner, setHydrationErrorOwner] = useState<string | null>(null);
@@ -61,7 +60,7 @@ export function OnboardingProvider({
   const ownerId =
     status === 'authenticated' && user
       ? user.id
-      : canUseGuestWorkspace(status, publicRuntimeConfig.appEnvironment)
+      : canUseGuestWorkspace(status, developmentPreview)
         ? GUEST_WORKSPACE_ID
         : null;
   const activeOwner = useRef(ownerId);
