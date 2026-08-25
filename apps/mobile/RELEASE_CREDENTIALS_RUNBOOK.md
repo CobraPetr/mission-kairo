@@ -4,18 +4,17 @@ This runbook lists the account-owned work that cannot be completed safely in sou
 
 ## 0. Repository prerequisite
 
-The current Git root is `apps/mobile`, but the application depends on `../../packages/domain`, the root `pnpm-workspace.yaml`, and the root `pnpm-lock.yaml`. A clean CI checkout from the current repository cannot contain those parent files.
+The Git root is the shared workspace root. The application depends on `apps/mobile`, `packages/domain`, the root `pnpm-workspace.yaml`, and the root `pnpm-lock.yaml`, so CI and EAS archives must preserve that complete graph.
 
 Before using CI or EAS Build:
 
-1. Back up the workspace.
-2. Make the shared workspace root the repository root without discarding the existing history or uncommitted application work.
-3. Confirm the repository contains `apps/mobile`, `packages/domain`, `supabase`, `package.json`, `pnpm-workspace.yaml`, and `pnpm-lock.yaml`.
-4. Move `apps/mobile/.github/workflows/quality-gate.yml` to `.github/workflows/quality-gate.yml` at that repository root.
-5. Keep `apps/mobile/.easignore`, `apps/mobile/eas.json`, and the Expo app configuration in the mobile app directory. Expo requires EAS commands to run from the app directory in a monorepo.
-6. Test a fresh clone with `pnpm install --frozen-lockfile` and `pnpm validate`.
+1. Confirm the repository contains `apps/mobile`, `packages/domain`, `supabase`, `package.json`, `pnpm-workspace.yaml`, and `pnpm-lock.yaml`.
+2. Keep the active workflow at root `.github/workflows/quality-gate.yml`; GitHub does not discover workflows nested under `apps/mobile`.
+3. Keep `apps/mobile/.easignore`, `apps/mobile/eas.json`, and the Expo app configuration in the mobile app directory. Expo requires EAS commands to run from the app directory in a monorepo.
+4. Test a fresh clone with `pnpm install --frozen-lockfile` and `pnpm validate`.
+5. Push only to the approved private remote and require the root quality workflow on protected `main`.
 
-Until this is complete, the CI workflow intentionally fails with an actionable workspace-integrity error instead of reporting a false green build.
+Until the private remote and branch protection are configured, local validation cannot prove that protected CI is active.
 
 ## 1. Expo and EAS
 

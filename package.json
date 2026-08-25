@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "pnpm@10.6.5",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
@@ -13,7 +14,8 @@
     "test": "pnpm --filter mobile test && pnpm --filter @winter-arc/domain test",
     "format": "prettier --write apps/mobile/src apps/mobile/app.json apps/mobile/eas.json apps/mobile/eslint.config.js apps/mobile/package.json apps/mobile/tsconfig.json packages/domain/src packages/domain/package.json packages/domain/tsconfig.json pnpm-workspace.yaml",
     "format:check": "prettier --check apps/mobile/src apps/mobile/app.json apps/mobile/eas.json apps/mobile/eslint.config.js apps/mobile/package.json apps/mobile/tsconfig.json packages/domain/src packages/domain/package.json packages/domain/tsconfig.json pnpm-workspace.yaml",
-    "validate": "pnpm lint && pnpm typecheck && pnpm test && pnpm format:check && pnpm build && pnpm build:mobile"
+    "validate:expo": "pnpm --filter mobile exec expo install --check && pnpm --filter mobile exec pnpm dlx expo-doctor@1.20.3",
+    "validate": "pnpm lint && pnpm typecheck && pnpm test && pnpm format:check && pnpm build && pnpm build:mobile && pnpm validate:expo"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",

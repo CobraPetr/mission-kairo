@@ -1,0 +1,106 @@
+name: Quality gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Source, Expo, and database validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Verify complete workspace archive
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_paths=(
+            apps/mobile
+            packages/domain
+            supabase
+            package.json
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
+          )
+
+          for required_path in "${required_paths[@]}"; do
+            if [[ ! -e "$required_path" ]]; then
+              echo "::error::The checkout is missing required workspace path: $required_path"
+              exit 1
+            fi
+          done
+
+      - name: Reject tracked credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          failed=0
+          while IFS= read -r tracked_path; do
+            case "$tracked_path" in
+              .env|.env.*|*/.env|*/.env.*)
+                if [[ "$tracked_path" != *.env.example ]]; then
+                  echo "::error file=$tracked_path::Local environment file is tracked"
+                  failed=1
+                fi
+                ;;
+              *.jks|*.keystore|*.p8|*.p12|*.pem|*.key|*.mobileprovision|credentials.json|*/credentials.json|google-services.json|*/google-services.json|GoogleService-Info.plist|*/GoogleService-Info.plist|service-account*.json|*/service-account*.json)
+                echo "::error file=$tracked_path::Credential or signing file is tracked"
+                failed=1
+                ;;
+            esac
+          done < <(git ls-files)
+
+          exit "$failed"
+
+      - name: Enable pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.5
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run source validation
+        run: pnpm validate
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.98.2
+
+      - name: Start isolated Supabase stack
+        run: supabase start
+
+      - name: Reset and test database
+        run: |
+          supabase db reset --local
+          supabase test db
+          supabase db lint --local --schema public,private --level error --fail-on error
+
+      - name: Stop isolated Supabase stack
+        if: always()
+        run: supabase stop --no-backup
