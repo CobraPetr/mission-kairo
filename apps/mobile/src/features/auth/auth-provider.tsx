@@ -16,7 +16,7 @@ import { type AuthFlowState } from '@/features/boot/resolve-initial-route';
 import { extractAuthCallbackParameters, isTrustedAuthCallbackUrl } from './auth-callback';
 
 export type AuthStatus = 'loading' | 'guest' | 'authenticated' | 'unconfigured' | 'error';
-export type AuthContinuationRoute = '/' | '/(app)/today' | '/(auth)/verify-phone';
+export type AuthContinuationRoute = '/' | '/(app)/today';
 
 type AuthContextValue = {
   authFlow: AuthFlowState;
@@ -24,8 +24,6 @@ type AuthContextValue = {
   developmentPreview: boolean;
   refreshSession(): Promise<AuthContinuationRoute | null>;
   requestPasswordReset(email: string): Promise<void>;
-  requestPhoneVerification(phone: string): Promise<void>;
-  resendPhoneVerification(phone: string): Promise<void>;
   resendVerification(email: string): Promise<void>;
   session: Session | null;
   signIn(email: string, password: string): Promise<void>;
@@ -34,7 +32,6 @@ type AuthContextValue = {
   status: AuthStatus;
   updatePassword(password: string): Promise<void>;
   user: User | null;
-  verifyPhoneVerification(phone: string, token: string): Promise<AuthContinuationRoute>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -151,19 +148,6 @@ export function AuthProvider({ children, developmentAdapter }: AuthProviderProps
         });
         if (error) throw error;
       },
-      async requestPhoneVerification(phone) {
-        if (developmentAdapter.handle('requestPhoneVerification')) return;
-        const { error } = await requireSupabase().auth.updateUser({ phone });
-        if (error) throw error;
-      },
-      async resendPhoneVerification(phone) {
-        if (developmentAdapter.handle('resendPhoneVerification')) return;
-        const { error } = await requireSupabase().auth.resend({
-          phone,
-          type: 'phone_change',
-        });
-        if (error) throw error;
-      },
       async resendVerification(email) {
         if (developmentAdapter.handle('resendVerification')) return;
         const { error } = await requireSupabase().auth.resend({
@@ -206,18 +190,6 @@ export function AuthProvider({ children, developmentAdapter }: AuthProviderProps
         setAuthFlow('standard');
       },
       user: session?.user ?? null,
-      async verifyPhoneVerification(phone, token) {
-        if (developmentAdapter.handle('verifyPhoneVerification')) {
-          return developmentAdapter.continuationAfter('verifyPhoneVerification') ?? '/';
-        }
-        const { error } = await requireSupabase().auth.verifyOtp({
-          phone,
-          token,
-          type: 'phone_change',
-        });
-        if (error) throw error;
-        return '/';
-      },
     }),
     [authFlow, developmentAdapter, session, status],
   );

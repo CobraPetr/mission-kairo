@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-import { isE164PhoneNumber, normalizePhoneNumber } from '../auth/phone-number';
 import { emotionalQuestions, type EmotionalQuestionId } from './questions';
 
 export const onboardingSections = [
@@ -41,7 +40,6 @@ export const identityInputSchema = z
     fullName: z.string().trim().min(2, 'Enter your name.').max(60),
     heightMajorInput: z.string().trim(),
     heightMinorInput: z.string().trim(),
-    phone: z.string().trim().max(24),
     unitSystem: z.enum(['metric', 'imperial']),
     username: z
       .string()
@@ -65,14 +63,6 @@ export const identityInputSchema = z
     const majorHeight = Number(input.heightMajorInput);
     const minorHeight = Number(input.heightMinorInput || '0');
     const weight = Number(input.weightInput);
-
-    if (!isE164PhoneNumber(input.phone)) {
-      context.addIssue({
-        code: 'custom',
-        message: 'Use an international number, e.g. +41 79 123 45 67.',
-        path: ['phone'],
-      });
-    }
 
     if (input.unitSystem === 'metric') {
       if (!Number.isFinite(majorHeight) || majorHeight < 120 || majorHeight > 230) {
@@ -136,7 +126,6 @@ const identityAnswersSchema = z.object({
   heightCm: z.number().min(120).max(230).nullable(),
   heightMajorInput: z.string().max(8),
   heightMinorInput: z.string().max(2),
-  phone: z.string().max(24),
   unitSystem: z.enum(['metric', 'imperial']),
   username: z.string().max(24),
   weightInput: z.string().max(8),
@@ -160,7 +149,6 @@ export function normalizeIdentity(input: IdentityInput): IdentityAnswers {
     ...valid,
     age: Number(valid.ageInput),
     heightCm: Math.round(heightCm * 10) / 10,
-    phone: normalizePhoneNumber(valid.phone),
     weightKg: Math.round(weightKg * 10) / 10,
   };
 }
@@ -336,9 +324,8 @@ const onboardingDraftV2Schema = z.object({
     .object({
       confirmedAt: z.string().nullable(),
       generalConfirmed: z.boolean(),
-      guardianConfirmed: z.boolean(),
     })
-    .default({ confirmedAt: null, generalConfirmed: false, guardianConfirmed: false }),
+    .default({ confirmedAt: null, generalConfirmed: false }),
   emotionalAnswers: emotionalAnswersSchema,
   emotionalIndex: z
     .number()
@@ -369,7 +356,6 @@ export function createEmptyOnboardingDraft(): OnboardingDraft {
     consent: {
       confirmedAt: null,
       generalConfirmed: false,
-      guardianConfirmed: false,
     },
     emotionalAnswers: {
       brokenPromise: '',
@@ -395,7 +381,6 @@ export function createEmptyOnboardingDraft(): OnboardingDraft {
       heightCm: null,
       heightMajorInput: '',
       heightMinorInput: '',
-      phone: '',
       unitSystem: 'metric',
       username: '',
       weightInput: '',

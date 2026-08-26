@@ -5,7 +5,6 @@ import { type Json } from '@/data/supabase/database.types';
 import { type OnboardingDraft } from '@/features/onboarding/onboarding-schema';
 
 const TERMS_VERSION = '2026-08-21';
-const GUARDIAN_CONSENT_VERSION = '2026-08-21';
 
 export type ProtocolActivation = {
   executionRevision: number;
@@ -26,16 +25,14 @@ export async function activateProtocol(
   if (!acceptedAt) throw new Error('Onboarding consent must be confirmed before activation.');
 
   const isMinor = (draft.identity.age ?? 18) < 18;
+  if (isMinor) {
+    throw new Error('Verified guardian approval required before protocol activation.');
+  }
+
   const { data, error } = await requireSupabase().rpc('activate_protocol', {
     p_activation_key: userId,
     p_answers: asJson(draft),
     p_assessment: asJson(assessment),
-    ...(isMinor
-      ? {
-          p_guardian_consent_recorded_at: acceptedAt,
-          p_guardian_consent_version: GUARDIAN_CONSENT_VERSION,
-        }
-      : {}),
     p_schema_version: draft.version,
     p_terms_accepted_at: acceptedAt,
     p_terms_version: TERMS_VERSION,

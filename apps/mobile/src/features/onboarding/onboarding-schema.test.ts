@@ -14,6 +14,22 @@ describe('onboarding draft schema', () => {
     expect(onboardingDraftSchema.safeParse(createEmptyOnboardingDraft()).success).toBe(true);
   });
 
+  it('drops legacy phone and self-attested guardian fields from persisted drafts', () => {
+    const legacy = createEmptyOnboardingDraft() as ReturnType<typeof createEmptyOnboardingDraft> & {
+      consent: ReturnType<typeof createEmptyOnboardingDraft>['consent'] & {
+        guardianConfirmed: boolean;
+      };
+      identity: ReturnType<typeof createEmptyOnboardingDraft>['identity'] & { phone: string };
+    };
+    legacy.identity.phone = '+41791234567';
+    legacy.consent.guardianConfirmed = true;
+
+    const parsed = onboardingDraftSchema.parse(legacy);
+
+    expect(parsed.identity).not.toHaveProperty('phone');
+    expect(parsed.consent).not.toHaveProperty('guardianConfirmed');
+  });
+
   it('trims and validates emotional answers', () => {
     expect(emotionalAnswerSchema.parse('  I am tired of restarting.  ')).toBe(
       'I am tired of restarting.',
@@ -27,14 +43,12 @@ describe('onboarding draft schema', () => {
       fullName: 'Alex Stone',
       heightMajorInput: '5',
       heightMinorInput: '11',
-      phone: '+41 79 123 45 67',
       unitSystem: 'imperial',
       username: 'alex_stone',
       weightInput: '172',
     });
 
     expect(identity.heightCm).toBe(180.3);
-    expect(identity.phone).toBe('+41791234567');
     expect(identity.weightKg).toBe(78);
   });
 
@@ -44,7 +58,6 @@ describe('onboarding draft schema', () => {
       fullName: 'Alex Stone',
       heightMajorInput: '180',
       heightMinorInput: '',
-      phone: '+41791234567',
       unitSystem: 'metric',
       username: 'alex_stone',
       weightInput: '78',
@@ -59,7 +72,6 @@ describe('onboarding draft schema', () => {
       fullName: 'Alex Stone',
       heightMajorInput: '5',
       heightMinorInput: '11',
-      phone: '+41791234567',
       unitSystem: 'imperial' as const,
       username: 'alex_stone',
       weightInput: '172',

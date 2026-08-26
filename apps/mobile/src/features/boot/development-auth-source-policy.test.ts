@@ -3,14 +3,12 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
-const productionAuthScreens = [
-  '../../app/(auth)/sign-up.tsx',
-  '../../app/(auth)/verify.tsx',
-  '../../app/(auth)/verify-phone.tsx',
-].map((path) => ({
-  path,
-  source: readFileSync(new URL(path, import.meta.url), 'utf8'),
-}));
+const productionAuthScreens = ['../../app/(auth)/sign-up.tsx', '../../app/(auth)/verify.tsx'].map(
+  (path) => ({
+    path,
+    source: readFileSync(new URL(path, import.meta.url), 'utf8'),
+  }),
+);
 
 describe('development auth source policy', () => {
   it('keeps development configuration checks out of production auth screens', () => {

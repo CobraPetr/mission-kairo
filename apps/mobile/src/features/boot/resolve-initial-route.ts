@@ -23,7 +23,6 @@ export type BootSnapshot = {
   guardianApproval: GuardianApprovalState;
   onboarding: OnboardingState;
   onboardingRoute: OnboardingRoute | null;
-  phoneVerification: VerificationState;
   session: SessionState;
   workspaceSafety: 'ready' | 'error';
 };
@@ -31,7 +30,6 @@ export type BootSnapshot = {
 export type InitialRoute =
   | '/(app)/today'
   | '/(auth)/verify'
-  | '/(auth)/verify-phone'
   | '/(auth)/welcome'
   | '/(onboarding)'
   | '/(onboarding)/review'
@@ -44,7 +42,6 @@ export type BootPhase =
   | 'emailVerification'
   | 'onboarding'
   | 'guardianApproval'
-  | 'phoneVerification'
   | 'activation'
   | 'entitlement'
   | 'appReadiness'
@@ -135,17 +132,6 @@ export function resolveBoot(snapshot: BootSnapshot): BootResolution {
       kind: 'route',
       phase: 'guardianApproval',
       route: '/(onboarding)/review',
-    };
-  }
-
-  if (snapshot.phoneVerification === 'unknown') {
-    return { kind: 'loading', phase: 'phoneVerification' };
-  }
-  if (snapshot.phoneVerification === 'required') {
-    return {
-      kind: 'route',
-      phase: 'phoneVerification',
-      route: '/(auth)/verify-phone',
     };
   }
 
@@ -272,13 +258,6 @@ export function resolveRouteAccess(
     if (request.group === 'app' && developmentMissionReady) {
       return { action: 'allow' };
     }
-    if (
-      request.group === 'auth' &&
-      request.screen === 'verify-phone' &&
-      snapshot.developmentPreview
-    ) {
-      return { action: 'allow' };
-    }
     if (request.group === 'auth' && publicGuestAuthScreens.has(request.screen)) {
       return { action: 'allow' };
     }
@@ -293,12 +272,6 @@ export function resolveRouteAccess(
 
   if (resolution.phase === 'emailVerification') {
     return request.group === 'auth' && request.screen === 'verify'
-      ? { action: 'allow' }
-      : { action: 'redirect', route: resolution.route };
-  }
-
-  if (resolution.phase === 'phoneVerification') {
-    return request.group === 'auth' && request.screen === 'verify-phone'
       ? { action: 'allow' }
       : { action: 'redirect', route: resolution.route };
   }

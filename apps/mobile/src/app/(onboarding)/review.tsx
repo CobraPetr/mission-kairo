@@ -71,8 +71,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 export default function ReviewScreen() {
   const { draft, setConsent, setSection } = useOnboarding();
   const isMinor = (draft.identity.age ?? 18) < 18;
-  const canContinue =
-    draft.consent.generalConfirmed && (!isMinor || draft.consent.guardianConfirmed);
+  const canContinue = draft.consent.generalConfirmed && !isMinor;
   const displayWeight = `${draft.identity.weightInput} ${draft.identity.unitSystem === 'metric' ? 'kg' : 'lb'}`;
   const targetWeight = `${draft.goals.targetWeightInput} ${draft.identity.unitSystem === 'metric' ? 'kg' : 'lb'}`;
 
@@ -142,17 +141,12 @@ export default function ReviewScreen() {
         }
       />
       {isMinor ? (
-        <CheckRow
-          checked={draft.consent.guardianConfirmed}
-          label="My parent or legal guardian has reviewed and approved my use of this app."
-          onPress={() =>
-            setConsent({
-              ...draft.consent,
-              confirmedAt: null,
-              guardianConfirmed: !draft.consent.guardianConfirmed,
-            })
-          }
-        />
+        <SectionPanel label="GUARDIAN APPROVAL REQUIRED" raised>
+          <AppText color="textMuted" variant="bodySmall">
+            Accounts for ages 14–17 cannot activate until a parent or legal guardian completes a
+            verified approval. That secure approval channel is not available in this version yet.
+          </AppText>
+        </SectionPanel>
       ) : null}
     </OnboardingStep>
   );

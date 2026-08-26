@@ -29,10 +29,15 @@ Legend:
   - [x] Verify that environment files, signing credentials, generated output, and duplicate export folders are excluded.
   - [x] Create the protected snapshot and `launch/v1.0` branch.
   - [x] Pass a frozen install and the complete validation chain from a clean clone: 80 mobile tests, 9 domain tests, formatting, Vite build, and 63-route Expo export.
-- [ ] Step 2 — Separate the approved web prototype from the production workspace.
-- [ ] Step 3 — Finish the boot resolver, route guards, and safe resume behavior.
-- [ ] Step 4 — Consolidate the development authentication bypass.
-- [ ] Step 5 — Finish hosted Supabase email delivery and auth configuration.
+- [-] Step 2 — Separate the approved web prototype from the production workspace. Implemented on the
+  launch branch; pull request #1 still requires an independent approval before merge.
+- [-] Step 3 — Finish the boot resolver, route guards, and safe resume behavior. Implemented and
+  native-Maestro verified on pull request #2; merge remains stacked behind Step 2.
+- [-] Step 4 — Consolidate the development authentication bypass. Implemented on pull request #3;
+  merge remains stacked behind Step 3.
+- [-] Step 5 — Finish hosted Supabase email delivery and auth configuration. The email-only client
+  and server policy is locally verified and deployed; hosted SMTP, legal guardian design, and
+  real-device email journeys remain external blockers.
 - [ ] Step 6 — Move portable rules and schemas into `packages/domain`.
 - [ ] Step 7 — Reconcile and harden the normalized database invariants.
 - [ ] Step 8 — Consolidate mission commands onto one idempotent, ledger-safe RPC path.
@@ -145,19 +150,27 @@ Legend:
 - [x] Create `profiles_public`.
 - [x] Create `profiles_private`.
 - [x] Create automatic profile initialization.
-- [x] Apply and test Row Level Security. All six hosted migrations are current, 86 pgTAP assertions pass locally, and the hosted public schema passes strict lint.
+- [x] Apply and test Row Level Security. All seven hosted migrations are current, all 88 pgTAP
+      assertions pass locally, and the hosted `public` and `private` schemas pass strict lint.
 - [x] Implement authentication state provider.
 - [x] Implement sign up.
 - [x] Implement email-link verification, resend, and deep-link callback.
-- [x] Implement authenticated phone-change verification, resend, and 6-digit OTP entry.
-- [x] Sync only confirmed Auth phone numbers into the private profile.
-- [!] Configure production SMTP and SMS delivery. Requires the owner's provider accounts and credentials.
+- [x] Remove phone fields, SMS screens, phone claims, and SMS methods from the v1 activation path.
+- [x] Disable phone signup and phone confirmation in the local Supabase v1 configuration.
+- [x] Require verified email for activation in both the native route gate and database RPC.
+- [x] Reject under-14 activation and reject self-attested guardian approval server-side.
+- [!] Design and legally approve a verified guardian workflow for ages 14–17 before enabling minor
+  activation. The current client and server intentionally fail closed.
+- [!] Configure production SMTP with an authenticated sender domain. Requires the owner's provider
+  account, DNS records, and credentials.
 - [x] Implement sign in.
 - [x] Implement password reset.
 - [x] Implement sign out.
 - [x] Implement session expiry recovery.
 - [x] Implement account deletion.
-- [!] Verify every authentication journey and error state. The project and delete-account function are live; real email delivery, session restoration, and deletion still require device testing.
+- [!] Verify every authentication journey and error state. The project and delete-account function
+  are live; signup, resend, reset, expiry, rate limiting, session restoration, and deletion still
+  require real hosted email and iOS/Android device testing.
 
 ## 4. Native onboarding
 

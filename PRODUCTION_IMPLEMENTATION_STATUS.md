@@ -1,6 +1,6 @@
 # Winter Arc production implementation status
 
-Updated: 21 August 2026
+Updated: 26 August 2026
 
 Status vocabulary: `NOT STARTED`, `IN PROGRESS`, `BLOCKED — USER ACTION REQUIRED`, `IMPLEMENTED — NEEDS TESTING`, `VERIFIED`.
 
@@ -21,7 +21,7 @@ Status: **VERIFIED**
 - Ownership foreign keys, indexes, constraints, timestamps, cascades, immutable records, and trusted RPC boundaries implemented.
 - Mobile repository contracts and scoped cache-key rules implemented.
 - The `winter-arc-development` project is active in Frankfurt on the free plan.
-- All six ordered migrations are applied to the hosted project.
+- All seven ordered migrations are applied to the hosted project.
 - Hosted database types are generated for the mobile client.
 - The authenticated `delete-account` Edge Function is deployed and active.
 - Onboarding drafts now use owner-scoped encrypted native caches, session-only web preview storage, automatic plain-cache migration, and revision-safe Supabase synchronization.
@@ -35,13 +35,21 @@ Status: **IMPLEMENTED — NEEDS TESTING**
 - RLS enabled on every implemented user-owned table.
 - Owner-only read policies and revoked direct canonical writes implemented.
 - Server-managed private-profile columns are no longer client-writable.
-- 86 ownership, activation, canonical XP, idempotency, revision-conflict, and integrity assertions pass against the isolated Supabase stack.
+- 88 ownership, activation, canonical XP, idempotency, revision-conflict, and integrity assertions
+  pass against the isolated Supabase stack.
+- The v1 activation path is email-only. Phone collection, SMS verification, phone claims, and
+  self-attested guardian approval have been removed from the active client path.
+- The forward-only activation policy requires verified email, rejects users under 14, and rejects
+  all ages 14–17 until a separately verified guardian workflow is legally approved.
 - The hosted `public` schema passes Supabase lint with warnings treated as failures.
 
 Remaining verification:
 
 - Perform live User A/User B API attempts with real Supabase sessions.
-- Verify real email delivery, deletion, and second-device restoration; SMS requires a provider.
+- Configure authenticated SMTP and verify signup, resend, reset, expiry, rate limits, deletion, and
+  second-device restoration on iOS and Android.
+- Complete legal review and design for verifiable guardian approval before allowing ages 14–17 to
+  activate.
 
 ## First milestone
 
@@ -54,10 +62,13 @@ Implemented and verified locally:
 - Private canonical mission templates; clients cannot choose mission XP.
 - Server-authoritative begin, pause, resume, advance, complete, skip, and close-day commands.
 - Account plan/execution restoration with revision-conflict refresh.
-- 80 passing mobile tests, strict mobile type-check, 86 passing database assertions, and clean local/hosted public-schema lint.
+- 117 passing mobile tests, strict mobile type-check, 88 passing database assertions, and clean local
+  public-schema lint.
 
 Remaining before this milestone is fully verified:
 
-- Configure real SMTP and SMS providers.
+- Configure real SMTP with an authenticated sender domain and test real email journeys.
+- Implement a legally approved, verifiable guardian workflow for ages 14–17; activation currently
+  fails closed.
 - Run the complete flow with two real hosted users and on two devices.
 - Add durable offline mission mutation queue/retry; current offline support is read-only cached state.

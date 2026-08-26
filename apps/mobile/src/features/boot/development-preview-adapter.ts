@@ -4,18 +4,12 @@ export type BootAuthStatus = 'loading' | 'guest' | 'authenticated' | 'unconfigur
 
 export type AppEnvironment = 'development' | 'preview' | 'production';
 
-export type DevelopmentAuthOperation =
-  | 'refreshSession'
-  | 'requestPhoneVerification'
-  | 'resendPhoneVerification'
-  | 'resendVerification'
-  | 'signUp'
-  | 'verifyPhoneVerification';
+export type DevelopmentAuthOperation = 'refreshSession' | 'resendVerification' | 'signUp';
 
 export type DevelopmentAuthAdapter = {
   continuationAfter(
-    operation: Extract<DevelopmentAuthOperation, 'refreshSession' | 'verifyPhoneVerification'>,
-  ): '/(app)/today' | '/(auth)/verify-phone' | null;
+    operation: Extract<DevelopmentAuthOperation, 'refreshSession'>,
+  ): '/(app)/today' | null;
   enabled: boolean;
   handle(operation: DevelopmentAuthOperation): boolean;
 };
@@ -33,9 +27,9 @@ export function createDevelopmentAuthAdapter(runtime: {
   const enabled = runtime.appEnvironment === 'development' && !runtime.backendConfigured;
 
   return {
-    continuationAfter(operation) {
+    continuationAfter() {
       if (!enabled) return null;
-      return operation === 'refreshSession' ? '/(auth)/verify-phone' : '/(app)/today';
+      return '/(app)/today';
     },
     enabled,
     handle() {

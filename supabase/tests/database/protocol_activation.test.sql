@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, pgtap;
 
-select extensions.plan(16);
+select extensions.plan(18);
 
 select has_function(
   'public',
@@ -39,10 +39,18 @@ values
   ),
   (
     '86000000-0000-0000-0000-000000000303',
-    'activation-unverified@example.test',
+    'activation-email-only@example.test',
     null,
     timezone('utc', now()),
     null,
+    '{}'
+  ),
+  (
+    '87000000-0000-0000-0000-000000000404',
+    'activation-unverified@example.test',
+    '+41790000404',
+    null,
+    timezone('utc', now()),
     '{}'
   );
 
@@ -153,34 +161,72 @@ select throws_ok(
       '85000000-0000-0000-0000-000000000202',
       'bravo_arc',
       2,
-      '{"identity":{"fullName":"Bravo Arc","heightCm":175,"weightKg":70,"unitSystem":"metric"},"relationship":{"status":"single"},"consent":{"guardianConfirmed":false}}',
+      '{"identity":{"fullName":"Bravo Arc","heightCm":175,"weightKg":70,"unitSystem":"metric"},"relationship":{"status":"single"},"consent":{"guardianConfirmed":true}}',
       '{"age":16,"gymAccess":"home","currentBuild":"average","targetBuild":"athletic","relationshipGoal":"selfFocus"}',
       '2026-08-21',
+      '2026-08-21T10:00:00Z',
+      'self-attested-v1',
       '2026-08-21T10:00:00Z'
     )
   $$,
-  '22023',
-  'Guardian consent required',
-  'a minor cannot activate without recorded guardian consent'
+  '42501',
+  'Verified guardian approval required',
+  'a minor cannot activate with a self-attested guardian payload'
 );
 
 set local request.jwt.claim.sub = '86000000-0000-0000-0000-000000000303';
 
+select lives_ok(
+  $$
+    select * from public.activate_protocol(
+      '88000000-0000-0000-0000-000000000303',
+      'email_only_arc',
+      2,
+      '{"identity":{"fullName":"Email Only Arc","heightCm":175,"weightKg":70,"unitSystem":"metric"},"relationship":{"status":"single"},"consent":{"generalConfirmed":true}}',
+      '{"age":19,"gymAccess":"home","currentBuild":"average","targetBuild":"athletic","relationshipGoal":"selfFocus"}',
+      '2026-08-21',
+      '2026-08-21T10:00:00Z'
+    )
+  $$,
+  'an adult with verified email can activate without a phone identity'
+);
+
+set local request.jwt.claim.sub = '87000000-0000-0000-0000-000000000404';
+
 select throws_ok(
   $$
     select * from public.activate_protocol(
-      '87000000-0000-0000-0000-000000000303',
+      '89000000-0000-0000-0000-000000000404',
       'unverified_arc',
       2,
-      '{"identity":{"fullName":"Unverified Arc","heightCm":175,"weightKg":70,"unitSystem":"metric"},"relationship":{"status":"single"},"consent":{"guardianConfirmed":false}}',
+      '{"identity":{"fullName":"Unverified Arc","heightCm":175,"weightKg":70,"unitSystem":"metric"},"relationship":{"status":"single"},"consent":{"generalConfirmed":true}}',
       '{"age":19,"gymAccess":"home","currentBuild":"average","targetBuild":"athletic","relationshipGoal":"selfFocus"}',
       '2026-08-21',
       '2026-08-21T10:00:00Z'
     )
   $$,
   '42501',
-  'Verified email and phone required',
-  'protocol activation requires both verified identity channels'
+  'Verified email required',
+  'protocol activation requires a verified email'
+);
+
+set local request.jwt.claim.sub = '82000000-0000-0000-0000-000000000202';
+
+select throws_ok(
+  $$
+    select * from public.activate_protocol(
+      '8a000000-0000-0000-0000-000000000202',
+      'underage_arc',
+      2,
+      '{"identity":{"fullName":"Underage Arc","heightCm":160,"weightKg":50,"unitSystem":"metric"},"relationship":{"status":"single"},"consent":{"generalConfirmed":true}}',
+      '{"age":13,"gymAccess":"home","currentBuild":"average","targetBuild":"athletic","relationshipGoal":"selfFocus"}',
+      '2026-08-21',
+      '2026-08-21T10:00:00Z'
+    )
+  $$,
+  '22023',
+  'Minimum activation age is 14',
+  'an account under age 14 cannot activate'
 );
 
 reset role;
