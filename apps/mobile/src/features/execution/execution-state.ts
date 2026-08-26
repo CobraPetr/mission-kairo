@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { type PlanDay, type ScheduledMission } from '@winter-arc/domain';
+import { type PlanDay, type ScheduledMission, WINTER_ARC_DURATION_DAYS } from '@winter-arc/domain';
 
 const missionEventSchema = z.object({
   eventId: z.string(),
@@ -11,13 +11,13 @@ const missionEventSchema = z.object({
 });
 
 export const executionStateSchema = z.object({
-  activeDay: z.number().int().min(1).max(90),
+  activeDay: z.number().int().min(1).max(WINTER_ARC_DURATION_DAYS),
   completedMissionIds: z.array(z.string()),
   currentMissionId: z.string().nullable(),
   currentStepIndex: z.number().int().min(0),
   events: z.array(missionEventSchema),
   missionStatus: z.enum(['idle', 'active', 'paused']),
-  sealedDayNumbers: z.array(z.number().int().min(1).max(90)).default([]),
+  sealedDayNumbers: z.array(z.number().int().min(1).max(WINTER_ARC_DURATION_DAYS)).default([]),
   skippedMissionIds: z.array(z.string()),
   version: z.literal(1),
   xp: z.number().int().min(0),
@@ -121,7 +121,7 @@ export function sealExecutionDay(
     sealed: true,
     state: {
       ...state,
-      activeDay: Math.min(state.activeDay + 1, 90),
+      activeDay: Math.min(state.activeDay + 1, WINTER_ARC_DURATION_DAYS),
       currentMissionId: null,
       currentStepIndex: 0,
       missionStatus: 'idle',

@@ -43,7 +43,10 @@ Legend:
   golden fixtures, boundary/property tests, and the local Edge smoke test are implemented and
   verified. Review, merge, and explicit authorization for the hosted migration/function deployment
   remain.
-- [ ] Step 7 — Reconcile and harden the normalized database invariants.
+- [-] Step 7 — Reconcile and harden the normalized database invariants. Shared bounds, 90-day and
+  daily-schedule constraints, forward-only status transitions, canonical XP derivation, drift
+  detection/repair, generated-type equality, six-migration upgrade preservation, and two-client API
+  isolation are locally verified. Review, merge, and hosted migration authorization remain.
 - [ ] Step 8 — Consolidate mission commands onto one idempotent, ledger-safe RPC path.
 - [ ] Step 9 — Harden account-scoped repositories and cache validation.
 - [ ] Step 10 — Add a durable offline mission-command queue.
@@ -229,6 +232,14 @@ Legend:
 - [x] Exercise confirmed-user activation and idempotent replay through the local Edge runtime.
 - [!] Deploy generator v2 migration and `activate-protocol` Edge Function to the hosted development
   project after owner authorization and pull-request review.
+- [x] Centralize age, measurement, duration, XP, step, daily-count, and workload bounds for client
+      schemas and database constraints.
+- [x] Enforce exact 90-day calendars, valid daily schedules, timestamp order, and forward-only plan,
+      day, mission, and execution transitions.
+- [x] Derive public XP through serialized canonical ledger deltas and provide private drift detection
+      and repair.
+- [x] Verify the forward migration preserves a populated six-migration plan, database types have no
+      generated diff, and two authenticated API clients cannot cross account boundaries.
 
 ## 6. Today and mission execution
 

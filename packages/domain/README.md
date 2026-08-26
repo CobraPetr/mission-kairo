@@ -31,3 +31,22 @@ Other onboarding answers—name, username, height, emotional reflection, work de
 current relationship status—belong to profile or immutable intake context. They intentionally do
 not alter mission allocation in v2. This keeps collection explainable without overstating
 personalization; expanding reviewed content is a separate launch gate.
+
+## Persisted invariant contract
+
+The mobile schemas and forward-only database constraints share these reviewed boundaries:
+
+| Value            | Boundary                                                                      |
+| ---------------- | ----------------------------------------------------------------------------- |
+| Age              | 14–100                                                                        |
+| Height           | 120–230 cm                                                                    |
+| Weight           | 35–250 kg                                                                     |
+| Plan             | exactly 90 ordered days                                                       |
+| Daily missions   | 2–3 ordered missions, at most 90 total minutes and one high-intensity mission |
+| Mission duration | 2–45 minutes                                                                  |
+| Mission XP       | 10–250, equal to the canonical ledger delta                                   |
+| Mission steps    | 1–12 structurally valid, consecutively ordered steps                          |
+
+Persisted plan, day, mission, and execution states move only forward through reviewed transitions.
+`profiles_public.total_xp` is maintained from serialized ledger deltas; private drift detection and
+repair remain available to the trusted service role.

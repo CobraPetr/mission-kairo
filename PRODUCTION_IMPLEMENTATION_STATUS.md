@@ -21,8 +21,9 @@ Status: **VERIFIED**
 - Ownership foreign keys, indexes, constraints, timestamps, cascades, immutable records, and trusted RPC boundaries implemented.
 - Mobile repository contracts and scoped cache-key rules implemented.
 - The `winter-arc-development` project is active in Frankfurt on the free plan.
-- All seven prior ordered migrations are applied to the hosted project. The eighth migration for the
-  canonical generator is locally verified and intentionally awaits review and deployment approval.
+- All seven prior ordered migrations are applied to the hosted project. The eighth and ninth
+  migrations for the canonical generator and hardened invariants are locally verified and
+  intentionally await review and deployment approval.
 - Hosted database types are generated for the mobile client.
 - The authenticated `delete-account` Edge Function is deployed and active.
 - Onboarding drafts now use owner-scoped encrypted native caches, session-only web preview storage, automatic plain-cache migration, and revision-safe Supabase synchronization.
@@ -38,7 +39,7 @@ Status: **IMPLEMENTED — NEEDS TESTING**
 - RLS enabled on every implemented user-owned table.
 - Owner-only read policies and revoked direct canonical writes implemented.
 - Server-managed private-profile columns are no longer client-writable.
-- 104 ownership, activation, canonical XP, idempotency, revision-conflict, and integrity assertions
+- 140 ownership, activation, canonical XP, idempotency, revision-conflict, and integrity assertions
   pass against the isolated Supabase stack.
 - The v1 activation path is email-only. Phone collection, SMS verification, phone claims, and
   self-attested guardian approval have been removed from the active client path.
@@ -48,7 +49,8 @@ Status: **IMPLEMENTED — NEEDS TESTING**
 
 Remaining verification:
 
-- Perform live User A/User B API attempts with real Supabase sessions.
+- Repeat the passing local User A/User B API isolation matrix against the hosted development project
+  after the pending migrations and Edge Function are approved and deployed.
 - Configure authenticated SMTP and verify signup, resend, reset, expiry, rate limits, deletion, and
   second-device restoration on iOS and Android.
 - Complete legal review and design for verifiable guardian approval before allowing ages 14–17 to
@@ -65,8 +67,9 @@ Implemented and verified locally:
 - Private canonical mission templates; clients cannot choose mission XP.
 - Server-authoritative begin, pause, resume, advance, complete, skip, and close-day commands.
 - Account plan/execution restoration with revision-conflict refresh.
-- 118 passing mobile tests, 15 passing domain tests, strict type-checks, 104 passing database
-  assertions, a passing confirmed-user Edge activation/replay smoke test, and clean local
+- 118 passing mobile tests, 15 passing domain tests, strict type-checks, 140 passing database
+  assertions, passing confirmed-user Edge activation/replay and two-client API isolation tests, a
+  populated six-migration upgrade test, generated-type equality, and clean local
   public/private-schema lint.
 
 Remaining before this milestone is fully verified:
