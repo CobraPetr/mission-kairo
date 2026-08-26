@@ -1,8 +1,8 @@
 import { type WinterArcPlan, winterArcPlanSchema } from '@winter-arc/domain';
 
 import { GUEST_WORKSPACE_ID, type WorkspaceOwnerId } from './cache-scope';
+import { type PlanRecord, type PlanRepository } from './contracts';
 import { type KeyValueStorage } from './onboarding-repository';
-import { type PlanRepository } from './contracts';
 
 export type PlanCloudGateway = {
   load(userId: string): Promise<WinterArcPlan | null>;
@@ -15,11 +15,25 @@ type PlanRepositoryDependencies = {
   storage: KeyValueStorage;
 };
 
-function parsePlan(value: string | null): WinterArcPlan | null {
+function serializePlan(record: PlanRecord): string {
+  return JSON.stringify(record);
+}
+
+function parsePlan(value: string | null): PlanRecord | null {
   if (!value) return null;
   try {
-    const result = winterArcPlanSchema.safeParse(JSON.parse(value));
-    return result.success ? result.data : null;
+    const candidate: unknown = JSON.parse(value);
+    if (candidate && typeof candidate === 'object' && 'plan' in candidate) {
+      const record = candidate as Record<string, unknown>;
+      const plan = winterArcPlanSchema.safeParse(record.plan);
+      if (plan.success && typeof record.canonical === 'boolean') {
+        return { canonical: record.canonical, plan: plan.data };
+      }
+      return null;
+    }
+
+    const legacy = winterArcPlanSchema.safeParse(candidate);
+    return legacy.success ? { canonical: false, plan: legacy.data } : null;
   } catch {
     return null;
   }
@@ -31,7 +45,11 @@ export function createPlanRepository({
   legacyGuestKey,
   storage,
 }: PlanRepositoryDependencies): PlanRepository {
-  async function readLocal(ownerId: WorkspaceOwnerId): Promise<WinterArcPlan | null> {
+  async function writeLocal(ownerId: WorkspaceOwnerId, record: PlanRecord): Promise<void> {
+    await storage.setItem(cacheKey(ownerId), serializePlan(record));
+  }
+
+  async function readLocal(ownerId: WorkspaceOwnerId): Promise<PlanRecord | null> {
     const key = cacheKey(ownerId);
     const raw = await storage.getItem(key);
     const parsed = parsePlan(raw);
@@ -46,15 +64,16 @@ export function createPlanRepository({
       return null;
     }
 
-    await storage.setItem(key, JSON.stringify(legacy));
+    const migrated = { canonical: false, plan: legacy.plan };
+    await writeLocal(ownerId, migrated);
     await storage.removeItem(legacyGuestKey);
-    return legacy;
+    return migrated;
   }
 
   return {
     async claimGuestWorkspace(userId) {
       const remote = await cloud.load(userId);
-      if (remote) await storage.setItem(cacheKey(userId), JSON.stringify(remote));
+      if (remote) await writeLocal(userId, { canonical: true, plan: remote });
       await storage.removeItem(cacheKey(GUEST_WORKSPACE_ID));
       if (legacyGuestKey) await storage.removeItem(legacyGuestKey);
     },
@@ -76,16 +95,18 @@ export function createPlanRepository({
           await storage.removeItem(cacheKey(ownerId));
           return null;
         }
-        await storage.setItem(cacheKey(ownerId), JSON.stringify(remote));
-        return remote;
-      } catch {
-        return local;
+        const canonical = { canonical: true, plan: remote };
+        await writeLocal(ownerId, canonical);
+        return canonical;
+      } catch (error) {
+        if (local?.canonical) return local;
+        throw error;
       }
     },
 
     async save(ownerId, plan) {
       const validated = winterArcPlanSchema.parse(plan);
-      await storage.setItem(cacheKey(ownerId), JSON.stringify(validated));
+      await writeLocal(ownerId, { canonical: false, plan: validated });
     },
   };
 }

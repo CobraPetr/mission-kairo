@@ -62,7 +62,7 @@ describe('createPlanRepository', () => {
   it('saves a generated guest preview only in the guest scope', async () => {
     await repository.save(GUEST_WORKSPACE_ID, plan);
 
-    expect(await repository.load(GUEST_WORKSPACE_ID)).toEqual(plan);
+    expect(await repository.load(GUEST_WORKSPACE_ID)).toEqual({ canonical: false, plan });
     expect(await repository.load('user-a')).toBeNull();
   });
 
@@ -71,7 +71,7 @@ describe('createPlanRepository', () => {
     await repository.save('user-a', plan);
     cloud.plans.set('user-a', serverPlan);
 
-    expect(await repository.load('user-a')).toEqual(serverPlan);
+    expect(await repository.load('user-a')).toEqual({ canonical: true, plan: serverPlan });
   });
 
   it('allows an already-activated plan to load from cache while offline', async () => {
@@ -79,7 +79,14 @@ describe('createPlanRepository', () => {
     await repository.load('user-a');
     cloud.fail = true;
 
-    expect(await repository.load('user-a')).toEqual(plan);
+    expect(await repository.load('user-a')).toEqual({ canonical: true, plan });
+  });
+
+  it('fails closed on an offline authenticated preview that was never activated', async () => {
+    await repository.save('user-a', plan);
+    cloud.fail = true;
+
+    await expect(repository.load('user-a')).rejects.toThrow('offline');
   });
 
   it('does not treat a guest preview as an activated account plan', async () => {
@@ -94,7 +101,7 @@ describe('createPlanRepository', () => {
   it('migrates the previous global plan cache into the guest scope', async () => {
     storage.values.set('legacy-plan', JSON.stringify(plan));
 
-    expect(await repository.load(GUEST_WORKSPACE_ID)).toEqual(plan);
+    expect(await repository.load(GUEST_WORKSPACE_ID)).toEqual({ canonical: false, plan });
     expect(storage.values.has('legacy-plan')).toBe(false);
   });
 });

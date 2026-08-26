@@ -129,8 +129,9 @@ export function createExecutionRepository({
         }
         await writeLocal(ownerId, remote);
         return remote;
-      } catch {
-        return local;
+      } catch (error) {
+        if (local) return local;
+        throw error;
       }
     },
 

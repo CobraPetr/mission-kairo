@@ -12,7 +12,9 @@ import {
 
 import { GUEST_WORKSPACE_ID, type ExecutionRepository } from '@/data/repositories';
 import { executionRepository } from '@/data/repositories/production';
+import { publicRuntimeConfig } from '@/config/runtime';
 import { useAuth } from '@/features/auth/auth-provider';
+import { canUseGuestWorkspace } from '@/features/boot/development-preview-adapter';
 import { usePlan } from '@/features/plan/plan-provider';
 import {
   advanceMissionStep,
@@ -29,8 +31,10 @@ type ExecutionContextValue = {
   closeDay(): Promise<boolean>;
   error?: string;
   hydrated: boolean;
+  hydrationError: boolean;
   pauseMission(): Promise<void>;
   reset(): Promise<void>;
+  retryHydration(): void;
   resumeMission(): Promise<void>;
   skipMission(missionId: string): Promise<void>;
   state: ExecutionState;
@@ -51,6 +55,8 @@ export function ExecutionProvider({
   const revisionRef = useRef(0);
   const hydrationRun = useRef(0);
   const [hydratedScope, setHydratedScope] = useState<string | null>(null);
+  const [hydrationErrorScope, setHydrationErrorScope] = useState<string | null>(null);
+  const [hydrationAttempt, setHydrationAttempt] = useState(0);
   const commandInFlightRef = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -66,14 +72,21 @@ export function ExecutionProvider({
     (mission) => mission.scheduledId === state.currentMissionId,
   );
   const ownerId =
-    status === 'loading' ? null : status === 'authenticated' && user ? user.id : GUEST_WORKSPACE_ID;
+    status === 'authenticated' && user
+      ? user.id
+      : canUseGuestWorkspace(status, publicRuntimeConfig.appEnvironment)
+        ? GUEST_WORKSPACE_ID
+        : null;
   const activePlanKey = planState.status === 'ready' ? planState.plan.planId : null;
   const currentHydrationScope = ownerId ? `${ownerId}:${activePlanKey ?? 'no-plan'}` : null;
-  const hydrated = currentHydrationScope !== null && hydratedScope === currentHydrationScope;
+  const hydrationKey = currentHydrationScope
+    ? `${currentHydrationScope}:${hydrationAttempt}`
+    : null;
+  const hydrated = hydrationKey !== null && hydratedScope === hydrationKey;
+  const hydrationError = hydrationKey !== null && hydrationErrorScope === hydrationKey;
 
   useEffect(() => {
-    if (!ownerId || !currentHydrationScope) return;
-
+    if (!ownerId || !currentHydrationScope || !hydrationKey) return;
     const run = hydrationRun.current + 1;
     hydrationRun.current = run;
     let mounted = true;
@@ -88,20 +101,22 @@ export function ExecutionProvider({
       revisionRef.current = stored?.revision ?? 0;
       stateRef.current = next;
       setState(next);
-      setHydratedScope(currentHydrationScope);
+      setHydratedScope(hydrationKey);
+      setHydrationErrorScope(null);
     })().catch(() => {
       if (!mounted || hydrationRun.current !== run) return;
       const empty = createEmptyExecutionState();
       revisionRef.current = 0;
       stateRef.current = empty;
       setState(empty);
-      setHydratedScope(currentHydrationScope);
+      setHydratedScope(null);
+      setHydrationErrorScope(hydrationKey);
     });
 
     return () => {
       mounted = false;
     };
-  }, [currentHydrationScope, ownerId, repository]);
+  }, [currentHydrationScope, hydrationKey, ownerId, repository]);
 
   const commit = useCallback(
     async (updater: (current: ExecutionState) => ExecutionState): Promise<ExecutionState> => {
@@ -224,6 +239,7 @@ export function ExecutionProvider({
         });
       },
       hydrated,
+      hydrationError,
       async pauseMission() {
         await executeLocked(undefined, async () => {
           if (status === 'authenticated') {
@@ -242,6 +258,10 @@ export function ExecutionProvider({
         revisionRef.current = 0;
         stateRef.current = empty;
         setState(empty);
+        setHydrationErrorScope(null);
+      },
+      retryHydration() {
+        setHydrationAttempt((attempt) => attempt + 1);
       },
       async resumeMission() {
         await executeLocked(undefined, async () => {
@@ -285,6 +305,7 @@ export function ExecutionProvider({
       executeServerCommand,
       error,
       hydrated,
+      hydrationError,
       ownerId,
       planState,
       repository,

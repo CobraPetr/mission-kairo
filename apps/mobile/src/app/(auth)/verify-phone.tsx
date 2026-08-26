@@ -85,7 +85,7 @@ export default function VerifyPhoneScreen() {
     try {
       await verifyPhoneVerification(result.data.phone, result.data.token);
       await activate();
-      router.replace('/(app)/today');
+      router.replace('/');
     } catch (verificationError) {
       setFormError(getAuthErrorMessage(verificationError));
     } finally {
