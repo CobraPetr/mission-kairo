@@ -26,9 +26,7 @@ describe('adaptAuthStatusForBoot', () => {
 
     expect(adapter.enabled).toBe(true);
     expect(adapter.handle('signUp')).toBe(true);
-    expect(adapter.handle('verifyPhoneVerification')).toBe(true);
-    expect(adapter.continuationAfter('refreshSession')).toBe('/(auth)/verify-phone');
-    expect(adapter.continuationAfter('verifyPhoneVerification')).toBe('/(app)/today');
+    expect(adapter.continuationAfter('refreshSession')).toBe('/(app)/today');
     expect(adaptAuthStatusForBoot('unconfigured', adapter.enabled)).toEqual({
       configuration: 'ready',
       developmentPreview: true,
@@ -51,7 +49,6 @@ describe('adaptAuthStatusForBoot', () => {
       expect(adapter.enabled).toBe(false);
       expect(adapter.handle('signUp')).toBe(false);
       expect(adapter.continuationAfter('refreshSession')).toBeNull();
-      expect(adapter.continuationAfter('verifyPhoneVerification')).toBeNull();
       expect(adaptAuthStatusForBoot('unconfigured', adapter.enabled)).toEqual({
         configuration: 'error',
         developmentPreview: false,

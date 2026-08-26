@@ -19,7 +19,6 @@ const ready: BootSnapshot = {
   guardianApproval: 'notRequired',
   onboarding: 'complete',
   onboardingRoute: '/(onboarding)/plan-preview',
-  phoneVerification: 'complete',
   session: 'authenticated',
   workspaceSafety: 'ready',
 };
@@ -30,7 +29,6 @@ describe('resolveInitialRoute', () => {
     ['emailVerification', { emailVerification: 'unknown' as const }],
     ['onboarding', { onboarding: 'unknown' as const }],
     ['guardianApproval', { guardianApproval: 'unknown' as const }],
-    ['phoneVerification', { phoneVerification: 'unknown' as const }],
     ['activation', { activation: 'unknown' as const }],
     ['entitlement', { entitlement: 'unknown' as const }],
     ['appReadiness', { appReadiness: 'unknown' as const }],
@@ -54,7 +52,6 @@ describe('resolveInitialRoute', () => {
       { guardianApproval: 'required' as const },
       '/(onboarding)/review',
     ],
-    ['unverified phone', { phoneVerification: 'required' as const }, '/(auth)/verify-phone'],
     [
       'missing canonical activation',
       { activation: 'required' as const },
@@ -111,12 +108,14 @@ describe('resolveRouteAccess', () => {
     });
   });
 
-  it('allows public authentication screens for a guest but not phone verification', () => {
+  it('allows only the public email authentication screens for a guest', () => {
     const guest = { ...ready, session: 'guest' as const };
     for (const screen of ['welcome', 'sign-in', 'sign-up', 'forgot-password', 'verify']) {
       expect(resolveRouteAccess(guest, { group: 'auth', screen })).toEqual({ action: 'allow' });
     }
-    expect(resolveRouteAccess(guest, { group: 'auth', screen: 'verify-phone' })).toMatchObject({
+    expect(
+      resolveRouteAccess(guest, { group: 'auth', screen: 'private-auth-route' }),
+    ).toMatchObject({
       action: 'redirect',
     });
   });
@@ -139,7 +138,6 @@ describe('resolveRouteAccess', () => {
 
   it.each([
     ['email', { emailVerification: 'required' as const }, { group: 'app' as const }],
-    ['phone', { phoneVerification: 'required' as const }, { group: 'app' as const }],
     ['onboarding', { onboarding: 'required' as const }, { group: 'app' as const }],
     ['activation', { activation: 'required' as const }, { group: 'app' as const }],
   ])('prevents a direct app link from skipping %s', (_name, patch, request) => {
@@ -196,9 +194,6 @@ describe('resolveRouteAccess', () => {
       session: 'guest' as const,
     };
     expect(resolveRouteAccess(previewGuest, { group: 'app' })).toEqual({ action: 'allow' });
-    expect(resolveRouteAccess(previewGuest, { group: 'auth', screen: 'verify-phone' })).toEqual({
-      action: 'allow',
-    });
     expect(
       resolveRouteAccess({ ...previewGuest, activation: 'required' }, { group: 'app' }),
     ).toMatchObject({ action: 'redirect' });

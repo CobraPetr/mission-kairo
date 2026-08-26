@@ -17,14 +17,10 @@ import {
   type OnboardingRoute,
 } from './resolve-initial-route';
 
-function guardianApprovalState(
-  hydrated: boolean,
-  age: number | null,
-  guardianConfirmed: boolean,
-): GuardianApprovalState {
+function guardianApprovalState(hydrated: boolean, age: number | null): GuardianApprovalState {
   if (!hydrated || age === null) return 'unknown';
   if (age >= 18) return 'notRequired';
-  return guardianConfirmed ? 'approved' : 'required';
+  return 'required';
 }
 
 export function CanonicalRouteGate({ children }: PropsWithChildren) {
@@ -79,19 +75,9 @@ export function CanonicalRouteGate({ children }: PropsWithChildren) {
             ? 'complete'
             : 'required',
       entitlement: 'notEnforced',
-      guardianApproval: guardianApprovalState(
-        onboardingHydrated,
-        draft.identity.age,
-        draft.consent.guardianConfirmed,
-      ),
+      guardianApproval: guardianApprovalState(onboardingHydrated, draft.identity.age),
       onboarding: !onboardingHydrated ? 'unknown' : onboardingComplete ? 'complete' : 'required',
       onboardingRoute,
-      phoneVerification:
-        auth.session !== 'authenticated' || !user
-          ? 'unknown'
-          : user.phone_confirmed_at
-            ? 'complete'
-            : 'required',
       session: auth.session,
       workspaceSafety: workspaceError ? 'error' : 'ready',
     }),
@@ -101,7 +87,6 @@ export function CanonicalRouteGate({ children }: PropsWithChildren) {
       auth.session,
       authFlow,
       activated,
-      draft.consent.guardianConfirmed,
       draft.identity.age,
       executionHydrated,
       onboardingComplete,

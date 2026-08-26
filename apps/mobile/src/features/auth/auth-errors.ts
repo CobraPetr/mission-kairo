@@ -16,8 +16,11 @@ export function getAuthErrorMessage(error: unknown): string {
   if (message.includes('username is unavailable')) {
     return 'That callsign is already assigned. Return to Identity and choose another.';
   }
-  if (message.includes('verified email and phone required')) {
-    return 'Verify both your email and phone before activating the protocol.';
+  if (message.includes('verified email required')) {
+    return 'Verify your email before activating the protocol.';
+  }
+  if (message.includes('verified guardian approval required')) {
+    return 'A verified parent or legal guardian must approve this account before activation.';
   }
 
   return 'The secure channel could not complete the request. Try again.';
