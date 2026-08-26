@@ -2,6 +2,7 @@ import { missionLibrary } from './mission-library.ts';
 import {
   PLAN_VERSION,
   PLAN_SEED_VERSION,
+  MAX_DAILY_MISSION_MINUTES,
   WINTER_ARC_DURATION_DAYS,
   type BaseTrack,
   type CapabilityProfile,
@@ -167,7 +168,9 @@ export function validatePlanSafety(plan: WinterArcPlan, age: number): string[] {
   plan.days.forEach((day, index) => {
     if (day.day !== index + 1) issues.push(`Day ${index + 1} is missing or out of order.`);
     const minutes = day.missions.reduce((sum, mission) => sum + mission.durationMinutes, 0);
-    if (minutes > 90) issues.push(`Day ${day.day} exceeds the 90-minute workload limit.`);
+    if (minutes > MAX_DAILY_MISSION_MINUTES) {
+      issues.push(`Day ${day.day} exceeds the 90-minute workload limit.`);
+    }
     if (day.missions.filter((mission) => mission.intensity === 'high').length > 1) {
       issues.push(`Day ${day.day} has too many high-intensity missions.`);
     }

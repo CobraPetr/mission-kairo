@@ -1,5 +1,14 @@
 import { z } from 'zod';
 
+import {
+  MAX_HEIGHT_CM,
+  MAX_USER_AGE,
+  MAX_WEIGHT_KG,
+  MIN_HEIGHT_CM,
+  MIN_USER_AGE,
+  MIN_WEIGHT_KG,
+} from '@winter-arc/domain';
+
 import { emotionalQuestions, type EmotionalQuestionId } from './questions';
 
 export const onboardingSections = [
@@ -52,7 +61,7 @@ export const identityInputSchema = z
   })
   .superRefine((input, context) => {
     const age = Number(input.ageInput);
-    if (!Number.isInteger(age) || age < 14 || age > 100) {
+    if (!Number.isInteger(age) || age < MIN_USER_AGE || age > MAX_USER_AGE) {
       context.addIssue({
         code: 'custom',
         message: 'Enter an age from 14 to 100.',
@@ -65,14 +74,18 @@ export const identityInputSchema = z
     const weight = Number(input.weightInput);
 
     if (input.unitSystem === 'metric') {
-      if (!Number.isFinite(majorHeight) || majorHeight < 120 || majorHeight > 230) {
+      if (
+        !Number.isFinite(majorHeight) ||
+        majorHeight < MIN_HEIGHT_CM ||
+        majorHeight > MAX_HEIGHT_CM
+      ) {
         context.addIssue({
           code: 'custom',
           message: 'Enter a height from 120 to 230 cm.',
           path: ['heightMajorInput'],
         });
       }
-      if (!Number.isFinite(weight) || weight < 35 || weight > 250) {
+      if (!Number.isFinite(weight) || weight < MIN_WEIGHT_KG || weight > MAX_WEIGHT_KG) {
         context.addIssue({
           code: 'custom',
           message: 'Enter a weight from 35 to 250 kg.',
@@ -100,7 +113,7 @@ export const identityInputSchema = z
     if (
       Number.isInteger(majorHeight) &&
       Number.isInteger(minorHeight) &&
-      (heightCm < 120 || heightCm > 230)
+      (heightCm < MIN_HEIGHT_CM || heightCm > MAX_HEIGHT_CM)
     ) {
       context.addIssue({
         code: 'custom',
@@ -120,16 +133,16 @@ export const identityInputSchema = z
 export type IdentityInput = z.input<typeof identityInputSchema>;
 
 const identityAnswersSchema = z.object({
-  age: z.number().int().min(14).max(100).nullable(),
+  age: z.number().int().min(MIN_USER_AGE).max(MAX_USER_AGE).nullable(),
   ageInput: z.string().max(3),
   fullName: z.string().max(60),
-  heightCm: z.number().min(120).max(230).nullable(),
+  heightCm: z.number().min(MIN_HEIGHT_CM).max(MAX_HEIGHT_CM).nullable(),
   heightMajorInput: z.string().max(8),
   heightMinorInput: z.string().max(2),
   unitSystem: z.enum(['metric', 'imperial']),
   username: z.string().max(24),
   weightInput: z.string().max(8),
-  weightKg: z.number().min(35).max(250).nullable(),
+  weightKg: z.number().min(MIN_WEIGHT_KG).max(MAX_WEIGHT_KG).nullable(),
 });
 
 export type IdentityAnswers = z.infer<typeof identityAnswersSchema>;
@@ -248,7 +261,7 @@ export const targetWeightInputSchema = z
     const weight = Number(input.targetWeightInput);
     const valid =
       input.unitSystem === 'metric'
-        ? Number.isFinite(weight) && weight >= 35 && weight <= 250
+        ? Number.isFinite(weight) && weight >= MIN_WEIGHT_KG && weight <= MAX_WEIGHT_KG
         : Number.isFinite(weight) && weight >= 78 && weight <= 551;
     if (!valid) {
       context.addIssue({
@@ -315,7 +328,7 @@ const goalsDraftSchema = z.object({
   relationshipGoal: z.enum(relationshipGoals).nullable(),
   targetBuild: z.enum(targetBuilds).nullable(),
   targetWeightInput: z.string().max(8),
-  targetWeightKg: z.number().min(35).max(250).nullable(),
+  targetWeightKg: z.number().min(MIN_WEIGHT_KG).max(MAX_WEIGHT_KG).nullable(),
 });
 
 const onboardingDraftV2Schema = z.object({

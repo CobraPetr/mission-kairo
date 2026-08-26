@@ -95,14 +95,23 @@ jobs:
       - name: Start isolated Supabase stack
         run: supabase start
 
+      - name: Verify upgrade from the audited six-migration state
+        run: bash supabase/tests/database/upgrade-from-six.sh
+
       - name: Reset and test database
         run: |
           supabase db reset --local
           supabase test db
           supabase db lint --local --schema public,private --level error --fail-on error
 
+      - name: Verify generated database types are current
+        run: bash supabase/tests/database/check-generated-types.sh
+
       - name: Exercise canonical activation Edge Function
         run: bash supabase/tests/edge/activate-protocol.sh
+
+      - name: Exercise two authenticated API clients
+        run: bash supabase/tests/api/two-client-isolation.sh
 
       - name: Stop isolated Supabase stack
         if: always()

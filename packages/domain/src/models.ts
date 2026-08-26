@@ -2,6 +2,21 @@ export const WINTER_ARC_DURATION_DAYS = 90 as const;
 export const LEGACY_PLAN_VERSION = 1 as const;
 export const PLAN_VERSION = 2 as const;
 export const PLAN_SEED_VERSION = 'mission-kairo.core.2026-08-26' as const;
+export const MIN_USER_AGE = 14 as const;
+export const MAX_USER_AGE = 100 as const;
+export const MIN_HEIGHT_CM = 120 as const;
+export const MAX_HEIGHT_CM = 230 as const;
+export const MIN_WEIGHT_KG = 35 as const;
+export const MAX_WEIGHT_KG = 250 as const;
+export const MIN_MISSION_DURATION_MINUTES = 2 as const;
+export const MAX_MISSION_DURATION_MINUTES = 45 as const;
+export const MIN_MISSION_XP = 10 as const;
+export const MAX_MISSION_XP = 250 as const;
+export const MIN_MISSION_STEPS = 1 as const;
+export const MAX_MISSION_STEPS = 12 as const;
+export const MIN_DAILY_MISSIONS = 2 as const;
+export const MAX_DAILY_MISSIONS = 3 as const;
+export const MAX_DAILY_MISSION_MINUTES = 90 as const;
 
 export type MissionCategory =
   'physical' | 'mindset' | 'presence' | 'career' | 'relationship' | 'recovery' | 'checkpoint';
