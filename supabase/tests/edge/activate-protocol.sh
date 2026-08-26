@@ -34,16 +34,18 @@ for _ in {1..30}; do
   task_boot_status="$(
     curl -sS -o /dev/null -w '%{http_code}' -X POST \
       "$task_api_url/functions/v1/activate-protocol" \
+      -H "apikey: $task_anon_key" \
+      -H 'Authorization: Bearer readiness-probe' \
       -H 'Content-Type: application/json' \
       --data '{}' || true
   )"
-  if [[ "$task_boot_status" == '401' ]]; then
+  if [[ "$task_boot_status" == '400' ]]; then
     break
   fi
   sleep 1
 done
 
-if [[ "${task_boot_status:-}" != '401' ]]; then
+if [[ "${task_boot_status:-}" != '400' ]]; then
   cat "$task_log_file"
   echo 'activate-protocol failed to boot' >&2
   exit 1
