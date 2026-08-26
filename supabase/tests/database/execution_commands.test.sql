@@ -5,6 +5,12 @@ set local search_path = public, extensions, pgtap;
 
 select extensions.plan(20);
 
+-- The legacy generator is production-revoked. Grant it only inside this rolled-back
+-- fixture transaction so the command tests can build their established v1 plan.
+grant execute on function public.activate_protocol(
+  uuid, text, integer, jsonb, jsonb, text, timestamptz, text, timestamptz
+) to authenticated;
+
 select has_function(
   'public',
   'execute_mission_command',

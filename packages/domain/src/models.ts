@@ -1,5 +1,7 @@
 export const WINTER_ARC_DURATION_DAYS = 90 as const;
-export const PLAN_VERSION = 1 as const;
+export const LEGACY_PLAN_VERSION = 1 as const;
+export const PLAN_VERSION = 2 as const;
+export const PLAN_SEED_VERSION = 'mission-kairo.core.2026-08-26' as const;
 
 export type MissionCategory =
   'physical' | 'mindset' | 'presence' | 'career' | 'relationship' | 'recovery' | 'checkpoint';
@@ -38,13 +40,18 @@ export type PlanDay = {
   missions: ScheduledMission[];
 };
 
-export type WinterArcPlan = {
+type PlanManifest = {
   baseTrack: BaseTrack;
   days: PlanDay[];
   durationDays: typeof WINTER_ARC_DURATION_DAYS;
   planId: string;
-  version: typeof PLAN_VERSION;
 };
+
+export type WinterArcPlan = PlanManifest &
+  (
+    | { seedVersion?: never; version: typeof LEGACY_PLAN_VERSION }
+    | { seedVersion: typeof PLAN_SEED_VERSION; version: typeof PLAN_VERSION }
+  );
 
 export type PlanAssessment = {
   age: number;

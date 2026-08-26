@@ -1,6 +1,7 @@
-import { missionLibrary } from './mission-library';
+import { missionLibrary } from './mission-library.ts';
 import {
   PLAN_VERSION,
+  PLAN_SEED_VERSION,
   WINTER_ARC_DURATION_DAYS,
   type BaseTrack,
   type CapabilityProfile,
@@ -9,8 +10,8 @@ import {
   type PlanDay,
   type ScheduledMission,
   type WinterArcPlan,
-} from './models';
-import { planAssessmentSchema, winterArcPlanSchema } from './schemas';
+} from './models.ts';
+import { planAssessmentSchema, winterArcPlanSchema } from './schemas.ts';
 
 export function normalizeAssessment(input: PlanAssessment): PlanAssessment {
   const parsed = planAssessmentSchema.parse(input);
@@ -54,6 +55,7 @@ export function selectBaseTrack(assessment: PlanAssessment): BaseTrack {
 
 function stableAssessmentValue(assessment: PlanAssessment): string {
   return JSON.stringify({
+    generatorVersion: PLAN_VERSION,
     age: assessment.age,
     careerGoal: assessment.careerGoal,
     confidenceGoals: assessment.confidenceGoals,
@@ -75,6 +77,14 @@ function stableHash(value: string): string {
     hash = Math.imul(hash, 0x01000193);
   }
   return (hash >>> 0).toString(36).padStart(8, '0').slice(-8);
+}
+
+export function serializeCanonicalPlan(plan: WinterArcPlan): string {
+  return JSON.stringify(winterArcPlanSchema.parse(plan));
+}
+
+export function fingerprintCanonicalPlan(plan: WinterArcPlan): string {
+  return stableHash(serializeCanonicalPlan(plan));
 }
 
 function scheduleMission(
@@ -183,6 +193,7 @@ export function generateWinterArcPlan(rawAssessment: PlanAssessment): WinterArcP
     days,
     durationDays: WINTER_ARC_DURATION_DAYS,
     planId,
+    seedVersion: PLAN_SEED_VERSION,
     version: PLAN_VERSION,
   };
 

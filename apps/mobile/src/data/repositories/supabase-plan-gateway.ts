@@ -9,7 +9,7 @@ export const supabasePlanGateway: PlanCloudGateway = {
     const client = requireSupabase();
     const { data: plan, error: planError } = await client
       .from('plans')
-      .select('id, plan_key, generator_version, base_track, duration_days, user_id')
+      .select('id, plan_key, generator_version, seed_version, base_track, duration_days, user_id')
       .eq('user_id', userId)
       .in('status', ['active', 'completed'])
       .order('activated_at', { ascending: false })
@@ -75,6 +75,7 @@ export const supabasePlanGateway: PlanCloudGateway = {
       days: planDays,
       durationDays: plan.duration_days,
       planId: plan.plan_key,
+      ...(plan.seed_version ? { seedVersion: plan.seed_version } : {}),
       version: plan.generator_version,
     });
   },

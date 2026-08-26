@@ -1,4 +1,4 @@
-import type { PlanGenerationAction, PlanGenerationState } from './models';
+import type { PlanGenerationAction, PlanGenerationState } from './models.ts';
 
 export function reducePlanGeneration(
   state: PlanGenerationState,

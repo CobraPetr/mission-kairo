@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { PLAN_SEED_VERSION } from './models.ts';
+
 export const missionStepSchema = z.object({
   id: z.string().min(1).max(80),
   instruction: z.string().min(3).max(240),
@@ -50,10 +52,33 @@ export const planDaySchema = z.object({
   missions: z.array(scheduledMissionSchema).min(2).max(3),
 });
 
-export const winterArcPlanSchema = z.object({
+const planManifestSchema = z.object({
   baseTrack: z.enum(['foundation', 'bodyRecomp', 'athletic', 'definition']),
   days: z.array(planDaySchema).length(90),
   durationDays: z.literal(90),
   planId: z.string().regex(/^wa_[a-z0-9]{8}$/),
-  version: z.literal(1),
+});
+
+export const winterArcPlanSchema = z.discriminatedUnion('version', [
+  planManifestSchema.extend({ version: z.literal(1) }),
+  planManifestSchema.extend({ seedVersion: z.literal(PLAN_SEED_VERSION), version: z.literal(2) }),
+]);
+
+export const protocolActivationRequestSchema = z.object({
+  answers: z.record(z.string(), z.unknown()),
+  assessment: planAssessmentSchema,
+  schemaVersion: z.literal(2),
+  termsAcceptedAt: z.iso.datetime({ offset: true }),
+  termsVersion: z.string().trim().min(1).max(64),
+  username: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9_]{3,24}$/),
+});
+
+export const protocolActivationResponseSchema = z.object({
+  executionRevision: z.number().int().positive(),
+  planId: z.uuid(),
+  planKey: z.string().regex(/^wa_[a-z0-9]{8}$/),
 });

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { generateWinterArcPlan } from './generator';
-import type { PlanAssessment, PlanGenerationState } from './models';
-import { reducePlanGeneration } from './state-machine';
+import { generateWinterArcPlan } from './generator.ts';
+import type { PlanAssessment, PlanGenerationState } from './models.ts';
+import { reducePlanGeneration } from './state-machine.ts';
 
 const assessment: PlanAssessment = {
   age: 18,

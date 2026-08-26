@@ -5,6 +5,12 @@ set local search_path = public, extensions, pgtap;
 
 select extensions.plan(18);
 
+-- Preserve the legacy behavioral regression suite without restoring production access.
+-- The new service-only v2 path is covered in canonical_plan_generator.test.sql.
+grant execute on function public.activate_protocol(
+  uuid, text, integer, jsonb, jsonb, text, timestamptz, text, timestamptz
+) to authenticated;
+
 select has_function(
   'public',
   'activate_protocol',

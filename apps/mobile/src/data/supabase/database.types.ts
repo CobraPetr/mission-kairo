@@ -1,11 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: '14.15';
-  };
   graphql_public: {
     Tables: {
       [_ in never]: never;
@@ -402,6 +397,7 @@ export type Database = {
           id: string;
           onboarding_submission_id: string;
           plan_key: string;
+          seed_version: string | null;
           status: string;
           updated_at: string;
           user_id: string;
@@ -416,6 +412,7 @@ export type Database = {
           id?: string;
           onboarding_submission_id: string;
           plan_key: string;
+          seed_version?: string | null;
           status?: string;
           updated_at?: string;
           user_id: string;
@@ -430,6 +427,7 @@ export type Database = {
           id?: string;
           onboarding_submission_id?: string;
           plan_key?: string;
+          seed_version?: string | null;
           status?: string;
           updated_at?: string;
           user_id?: string;
@@ -562,6 +560,24 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      activate_generated_protocol: {
+        Args: {
+          p_activation_key: string;
+          p_answers: Json;
+          p_assessment: Json;
+          p_plan: Json;
+          p_schema_version: number;
+          p_terms_accepted_at: string;
+          p_terms_version: string;
+          p_user_id: string;
+          p_username: string;
+        };
+        Returns: {
+          activated_plan_id: string;
+          activated_plan_key: string;
+          execution_revision: number;
+        }[];
+      };
       activate_protocol: {
         Args: {
           p_activation_key: string;
