@@ -9,6 +9,7 @@ task_service_key="$(jq -r '.SERVICE_ROLE_KEY' <<<"$task_status_json")"
 task_suffix="$(date +%s)"
 task_email="gate6-${task_suffix}@example.test"
 task_username="gate6_${task_suffix}"
+task_accepted_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 task_user_id=''
 task_log_file="$(mktemp)"
 
@@ -74,7 +75,7 @@ if [[ -z "$task_access_token" ]]; then
 fi
 
 task_payload="$(
-  jq -nc --arg username "$task_username" '{
+  jq -nc --arg username "$task_username" --arg acceptedAt "$task_accepted_at" '{
     answers: {
       identity: {
         fullName: "Gate Six",
@@ -85,7 +86,7 @@ task_payload="$(
         unitSystem: "metric"
       },
       relationship: {status: "single"},
-      consent: {generalConfirmed: true, confirmedAt: "2026-08-26T12:00:00Z"}
+      consent: {generalConfirmed: true, confirmedAt: $acceptedAt}
     },
     assessment: {
       age: 24,
@@ -101,7 +102,7 @@ task_payload="$(
       targetWeightKg: 78
     },
     schemaVersion: 2,
-    termsAcceptedAt: "2026-08-26T12:00:00Z",
+    termsAcceptedAt: $acceptedAt,
     termsVersion: "2026-08-21",
     username: $username
   }'
@@ -118,11 +119,15 @@ invoke_activation() {
 task_first_response="$(invoke_activation)"
 task_second_response="$(invoke_activation)"
 
-jq -e '
+if ! jq -e '
   (.executionRevision | type == "number") and
   (.planId | test("^[0-9a-f-]{36}$")) and
   (.planKey | test("^wa_[a-z0-9]{8}$"))
-' <<<"$task_first_response" >/dev/null
+' <<<"$task_first_response" >/dev/null; then
+  cat "$task_log_file" >&2
+  echo "Initial activation failed: $task_first_response" >&2
+  exit 1
+fi
 
 task_first_identity="$(jq -c '{executionRevision, planId, planKey}' <<<"$task_first_response")"
 task_second_identity="$(jq -c '{executionRevision, planId, planKey}' <<<"$task_second_response")"
