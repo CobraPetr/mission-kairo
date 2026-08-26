@@ -17,7 +17,6 @@ import {
 
 import { GUEST_WORKSPACE_ID, type PlanRepository } from '@/data/repositories';
 import { planRepository } from '@/data/repositories/production';
-import { publicRuntimeConfig } from '@/config/runtime';
 import { useAuth } from '@/features/auth/auth-provider';
 import { canUseGuestWorkspace } from '@/features/boot/development-preview-adapter';
 import { useOnboarding } from '@/features/onboarding/onboarding-provider';
@@ -41,7 +40,7 @@ const PlanContext = createContext<PlanContextValue | null>(null);
 type PlanProviderProps = PropsWithChildren<{ repository?: PlanRepository }>;
 
 export function PlanProvider({ children, repository = planRepository }: PlanProviderProps) {
-  const { status, user } = useAuth();
+  const { developmentPreview, status, user } = useAuth();
   const { draft } = useOnboarding();
   const [state, dispatch] = useReducer(reducePlanGeneration, { status: 'idle' });
   const [activatedOwner, setActivatedOwner] = useState<string | null>(null);
@@ -52,7 +51,7 @@ export function PlanProvider({ children, repository = planRepository }: PlanProv
   const ownerId =
     status === 'authenticated' && user
       ? user.id
-      : canUseGuestWorkspace(status, publicRuntimeConfig.appEnvironment)
+      : canUseGuestWorkspace(status, developmentPreview)
         ? GUEST_WORKSPACE_ID
         : null;
   const hydrationKey = ownerId ? `${ownerId}:${hydrationAttempt}` : null;

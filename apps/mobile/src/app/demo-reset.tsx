@@ -1,21 +1,16 @@
 import { Redirect, router } from 'expo-router';
 import { useEffect, useRef } from 'react';
 
-import { publicRuntimeConfig } from '@/config/runtime';
-import { isBackendConfigured } from '@/data/supabase/client';
+import { useAuth } from '@/features/auth/auth-provider';
 import { useExecution } from '@/features/execution/execution-provider';
-import { canRunDemoReset } from '@/features/boot/demo-reset-policy';
 import { useOnboarding } from '@/features/onboarding/onboarding-provider';
 import { usePlan } from '@/features/plan/plan-provider';
 import { AppText, MonoLabel, SafeScreen, Stack } from '@/ui/primitives';
 
 export default function DemoResetScreen() {
-  const resetAllowed = canRunDemoReset({
-    appEnvironment: publicRuntimeConfig.appEnvironment,
-    backendConfigured: isBackendConfigured,
-  });
+  const { developmentPreview } = useAuth();
 
-  if (!resetAllowed) {
+  if (!developmentPreview) {
     return <Redirect href="/" />;
   }
 

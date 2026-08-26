@@ -12,7 +12,6 @@ import {
 
 import { GUEST_WORKSPACE_ID, type ExecutionRepository } from '@/data/repositories';
 import { executionRepository } from '@/data/repositories/production';
-import { publicRuntimeConfig } from '@/config/runtime';
 import { useAuth } from '@/features/auth/auth-provider';
 import { canUseGuestWorkspace } from '@/features/boot/development-preview-adapter';
 import { usePlan } from '@/features/plan/plan-provider';
@@ -48,7 +47,7 @@ export function ExecutionProvider({
   children,
   repository = executionRepository,
 }: ExecutionProviderProps) {
-  const { status, user } = useAuth();
+  const { developmentPreview, status, user } = useAuth();
   const { state: planState } = usePlan();
   const [state, setState] = useState(createEmptyExecutionState);
   const stateRef = useRef(state);
@@ -74,7 +73,7 @@ export function ExecutionProvider({
   const ownerId =
     status === 'authenticated' && user
       ? user.id
-      : canUseGuestWorkspace(status, publicRuntimeConfig.appEnvironment)
+      : canUseGuestWorkspace(status, developmentPreview)
         ? GUEST_WORKSPACE_ID
         : null;
   const activePlanKey = planState.status === 'ready' ? planState.plan.planId : null;

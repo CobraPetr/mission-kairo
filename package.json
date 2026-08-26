@@ -11,8 +11,8 @@
     "lint": "eslint packages/domain/src && pnpm --filter mobile lint",
     "typecheck": "pnpm --filter mobile exec tsc --noEmit && pnpm --filter @winter-arc/domain typecheck",
     "test": "pnpm --filter mobile test && pnpm --filter @winter-arc/domain test",
-    "format": "prettier --write apps/mobile/src apps/mobile/app.json apps/mobile/eas.json apps/mobile/eslint.config.js apps/mobile/package.json apps/mobile/tsconfig.json packages/domain/src packages/domain/package.json packages/domain/tsconfig.json pnpm-workspace.yaml",
-    "format:check": "prettier --check apps/mobile/src apps/mobile/app.json apps/mobile/eas.json apps/mobile/eslint.config.js apps/mobile/package.json apps/mobile/tsconfig.json packages/domain/src packages/domain/package.json packages/domain/tsconfig.json pnpm-workspace.yaml",
+    "format": "prettier --write apps/mobile/src apps/mobile/app.config.ts apps/mobile/app.json apps/mobile/eas.json apps/mobile/eslint.config.js apps/mobile/package.json apps/mobile/tsconfig.json packages/domain/src packages/domain/package.json packages/domain/tsconfig.json pnpm-workspace.yaml",
+    "format:check": "prettier --check apps/mobile/src apps/mobile/app.config.ts apps/mobile/app.json apps/mobile/eas.json apps/mobile/eslint.config.js apps/mobile/package.json apps/mobile/tsconfig.json packages/domain/src packages/domain/package.json packages/domain/tsconfig.json pnpm-workspace.yaml",
     "validate:expo": "pnpm --filter mobile exec expo install --check && pnpm --filter mobile exec pnpm dlx expo-doctor@1.20.3",
     "validate": "pnpm lint && pnpm typecheck && pnpm test && pnpm format:check && pnpm build && pnpm validate:expo"
   },

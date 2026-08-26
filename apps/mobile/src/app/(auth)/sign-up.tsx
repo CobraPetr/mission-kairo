@@ -3,7 +3,6 @@ import { Check } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { publicRuntimeConfig } from '@/config/runtime';
 import { getAuthErrorMessage } from '@/features/auth/auth-errors';
 import { useAuth } from '@/features/auth/auth-provider';
 import { getFieldIssue, signUpSchema } from '@/features/auth/auth-schemas';
@@ -12,7 +11,7 @@ import { AppText, Button, Inline, TextField } from '@/ui/primitives';
 import { AuthFormScreen } from '@/ui/patterns/auth-form-screen';
 
 export default function SignUpScreen() {
-  const { signUp, status } = useAuth();
+  const { signUp } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,11 +42,6 @@ export default function SignUpScreen() {
 
     setIssues({});
     setFormError(undefined);
-
-    if (publicRuntimeConfig.appEnvironment === 'development' && status === 'unconfigured') {
-      router.replace({ pathname: '/(auth)/verify', params: { email: result.data.email } });
-      return;
-    }
 
     setLoading(true);
     try {

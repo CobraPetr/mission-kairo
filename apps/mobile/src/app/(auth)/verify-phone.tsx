@@ -2,7 +2,6 @@ import { router } from 'expo-router';
 import { MessageSquareLock } from 'lucide-react-native';
 import { useState } from 'react';
 
-import { publicRuntimeConfig } from '@/config/runtime';
 import { getAuthErrorMessage } from '@/features/auth/auth-errors';
 import { useAuth } from '@/features/auth/auth-provider';
 import {
@@ -21,8 +20,13 @@ type VerificationStage = 'phone' | 'code';
 export default function VerifyPhoneScreen() {
   const { draft } = useOnboarding();
   const { activate } = usePlan();
-  const { requestPhoneVerification, resendPhoneVerification, status, verifyPhoneVerification } =
-    useAuth();
+  const {
+    developmentPreview,
+    requestPhoneVerification,
+    resendPhoneVerification,
+    status,
+    verifyPhoneVerification,
+  } = useAuth();
   const [stage, setStage] = useState<VerificationStage>('phone');
   const [phone, setPhone] = useState(draft.identity.phone);
   const [token, setToken] = useState('');
@@ -30,8 +34,6 @@ export default function VerifyPhoneScreen() {
   const [formError, setFormError] = useState<string>();
   const [message, setMessage] = useState<string>();
   const [loading, setLoading] = useState(false);
-  const isLocalDemo =
-    publicRuntimeConfig.appEnvironment === 'development' && status === 'unconfigured';
 
   async function sendCode() {
     const result = phoneVerificationRequestSchema.safeParse({ phone });
@@ -45,12 +47,7 @@ export default function VerifyPhoneScreen() {
     setFormError(undefined);
     setMessage(undefined);
 
-    if (isLocalDemo) {
-      setStage('code');
-      return;
-    }
-
-    if (status !== 'authenticated') {
+    if (status !== 'authenticated' && !developmentPreview) {
       setFormError('Confirm your email before requesting the text message.');
       return;
     }
@@ -76,16 +73,11 @@ export default function VerifyPhoneScreen() {
     setFieldError(undefined);
     setFormError(undefined);
 
-    if (isLocalDemo) {
-      router.replace('/(app)/today');
-      return;
-    }
-
     setLoading(true);
     try {
-      await verifyPhoneVerification(result.data.phone, result.data.token);
-      await activate();
-      router.replace('/');
+      const continuation = await verifyPhoneVerification(result.data.phone, result.data.token);
+      if (status === 'authenticated') await activate();
+      router.replace(continuation);
     } catch (verificationError) {
       setFormError(getAuthErrorMessage(verificationError));
     } finally {
@@ -96,11 +88,6 @@ export default function VerifyPhoneScreen() {
   async function resendCode() {
     setFormError(undefined);
     setMessage(undefined);
-
-    if (isLocalDemo) {
-      setMessage('Local preview code reset. Use any 6 digits.');
-      return;
-    }
 
     setLoading(true);
     try {
@@ -166,11 +153,6 @@ export default function VerifyPhoneScreen() {
             textContentType="oneTimeCode"
             value={token}
           />
-          {isLocalDemo ? (
-            <AppText color="textDim" variant="caption">
-              Local preview: enter any six digits.
-            </AppText>
-          ) : null}
           <Button label="Confirm and enter" loading={loading} onPress={confirmCode} />
           <Button label="Resend code" disabled={loading} onPress={resendCode} variant="ghost" />
         </>
