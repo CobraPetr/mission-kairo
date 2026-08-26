@@ -38,7 +38,11 @@ Legend:
 - [-] Step 5 — Finish hosted Supabase email delivery and auth configuration. The email-only client
   and server policy is locally verified and deployed; hosted SMTP, legal guardian design, and
   real-device email journeys remain external blockers.
-- [ ] Step 6 — Move portable rules and schemas into `packages/domain`.
+- [-] Step 6 — Move portable rules and schemas into `packages/domain`. Generator v2, immutable
+  seed/version metadata, server-only canonical activation, cross-runtime source policy, four-track
+  golden fixtures, boundary/property tests, and the local Edge smoke test are implemented and
+  verified. Review, merge, and explicit authorization for the hosted migration/function deployment
+  remain.
 - [ ] Step 7 — Reconcile and harden the normalized database invariants.
 - [ ] Step 8 — Consolidate mission commands onto one idempotent, ledger-safe RPC path.
 - [ ] Step 9 — Harden account-scoped repositories and cache validation.
@@ -214,9 +218,17 @@ Legend:
 - [x] Implement workload and safety validation.
 - [x] Implement XP-range calculation.
 - [x] Implement atomic plan persistence.
+- [x] Make generator v2 and its reviewed seed version explicit and restorable.
+- [x] Use the same portable generator source in the native preview and server activation runtime.
+- [x] Revoke authenticated access to the legacy SQL generator and accept manifests only through the
+      service-role activation boundary.
 - [x] Build the plan-generation state.
 - [x] Build the plan preview.
-- [x] Verify deterministic output, schedule validity, and safety rules.
+- [x] Verify deterministic output, byte-stable plan identity, all four base tracks, boundary inputs,
+      schedule validity, workload properties, and safety rules.
+- [x] Exercise confirmed-user activation and idempotent replay through the local Edge runtime.
+- [!] Deploy generator v2 migration and `activate-protocol` Edge Function to the hosted development
+  project after owner authorization and pull-request review.
 
 ## 6. Today and mission execution
 

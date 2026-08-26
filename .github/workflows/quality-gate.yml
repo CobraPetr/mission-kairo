@@ -101,6 +101,9 @@ jobs:
           supabase test db
           supabase db lint --local --schema public,private --level error --fail-on error
 
+      - name: Exercise canonical activation Edge Function
+        run: bash supabase/tests/edge/activate-protocol.sh
+
       - name: Stop isolated Supabase stack
         if: always()
         run: supabase stop --no-backup

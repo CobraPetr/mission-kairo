@@ -121,7 +121,7 @@ export function PlanProvider({ children, repository = planRepository }: PlanProv
       throw new Error('Authentication is required before protocol activation.');
     }
 
-    await activateProtocol(user.id, draft, buildPlanAssessment(draft));
+    await activateProtocol(draft, buildPlanAssessment(draft));
     await refresh();
   }, [draft, refresh, status, user]);
 

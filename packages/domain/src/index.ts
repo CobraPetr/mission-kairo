@@ -1,10 +1,10 @@
-export * from './generator';
-export * from './mission-library';
-export * from './models';
-export * from './schemas';
-export * from './state-machine';
+export * from './generator.ts';
+export * from './mission-library.ts';
+export * from './models.ts';
+export * from './schemas.ts';
+export * from './state-machine.ts';
 
-import { WINTER_ARC_DURATION_DAYS } from './models';
+import { WINTER_ARC_DURATION_DAYS } from './models.ts';
 
 export function calculateCompletionPercent(completedDays: number): number {
   if (!Number.isFinite(completedDays)) return 0;

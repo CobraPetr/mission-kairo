@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { calculateCompletionPercent, WINTER_ARC_DURATION_DAYS } from './index';
+import { calculateCompletionPercent, WINTER_ARC_DURATION_DAYS } from './index.ts';
 
 describe('calculateCompletionPercent', () => {
   it('starts at zero and finishes at one hundred', () => {
