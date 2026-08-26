@@ -48,7 +48,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e:ios": "maestro test .maestro/boot-cold-warm.yaml"
   },
   "private": true
 }
