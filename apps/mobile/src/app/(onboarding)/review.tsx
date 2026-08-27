@@ -131,7 +131,7 @@ export default function ReviewScreen() {
 
       <CheckRow
         checked={draft.consent.generalConfirmed}
-        label="These answers are accurate. I understand Winter Arc provides general fitness and self-development guidance, not medical or mental-health treatment."
+        label="These answers are accurate. I understand Mission — Kairo provides general fitness and self-development guidance, not medical or mental-health treatment."
         onPress={() =>
           setConsent({
             ...draft.consent,
@@ -141,10 +141,10 @@ export default function ReviewScreen() {
         }
       />
       {isMinor ? (
-        <SectionPanel label="GUARDIAN APPROVAL REQUIRED" raised>
+        <SectionPanel label="18+ BETA" raised>
           <AppText color="textMuted" variant="bodySmall">
-            Accounts for ages 14–17 cannot activate until a parent or legal guardian completes a
-            verified approval. That secure approval channel is not available in this version yet.
+            Mission — Kairo is available to adults only during the public beta. This profile cannot
+            activate yet.
           </AppText>
         </SectionPanel>
       ) : null}

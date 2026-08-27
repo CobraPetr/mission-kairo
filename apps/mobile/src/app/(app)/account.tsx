@@ -39,7 +39,7 @@ export default function AccountScreen() {
 
   function confirmDeletion() {
     Alert.alert(
-      'Delete Winter Arc account?',
+      'Delete Mission — Kairo account?',
       'This permanently deletes your profile and progress. This cannot be undone.',
       [
         { style: 'cancel', text: 'Cancel' },

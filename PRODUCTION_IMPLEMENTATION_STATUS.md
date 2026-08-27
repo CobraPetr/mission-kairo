@@ -1,4 +1,4 @@
-# Winter Arc production implementation status
+# Mission — Kairo production implementation status
 
 Updated: 27 August 2026
 
@@ -33,6 +33,8 @@ Status: **VERIFIED**
 - Plan restoration and mission execution now read canonical server state.
 - Protocol activation refresh now resolves against the complete hydration identity instead of
   leaving the application route gate in a restoring state.
+- The release-facing product is named Mission — Kairo; Winter Arc remains the first 90-day
+  protocol. Custom iOS, Android, monochrome, splash, and favicon assets replace Expo defaults.
 
 ## Phase 2 — Security and RLS
 

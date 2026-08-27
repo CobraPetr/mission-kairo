@@ -6,11 +6,11 @@ product
 
 ## Users
 
-Winter Arc is built for people aged 14 and older who want visible structure for improving their body, presentation, confidence, relationships, discipline, and education or career. They use the app in short daily sessions, often before school, work, training, or sleep, and need one clear next action rather than another library of generic advice.
+Mission — Kairo is built for adults who want visible structure for improving their body, presentation, confidence, relationships, discipline, and education or career. They use the app in short daily sessions, often before work, training, or sleep, and need one clear next action rather than another library of generic advice. The v1 public beta is 18+.
 
 ## Product Purpose
 
-Turn a 90-day self-improvement season into a motivating game. Users answer an emotionally direct onboarding assessment, choose their own goals, receive an AI-assisted profile and mostly shared roadmap, complete daily missions, submit private weekly progress photos, earn XP, move through a visible path, and participate in moderated global competition and community. Success means sustained action and measurable personal progress, not attractiveness ranking or comparison of bodies.
+Turn a 90-day self-improvement season into a motivating protocol. Winter Arc is the first season inside Mission — Kairo. Users answer an emotionally direct onboarding assessment, choose their own goals, receive a mostly shared roadmap, complete daily missions, earn XP, and move through a visible path. Private progress photos, AI guidance, and moderated social systems are later modules and remain disabled until their safety and privacy controls are complete. Success means sustained action and measurable personal progress, not attractiveness ranking or comparison of bodies.
 
 ## Brand Personality
 
@@ -35,4 +35,4 @@ Cinematic, disciplined, premium. The voice is intense and accountable with contr
 
 ## Accessibility & Inclusion
 
-Design for everyone aged 14 and older across varied genders, body frames, fitness levels, and abilities. Use neutral body language, accessible contrast, scalable type, large touch targets, screen-reader labels, color-independent status cues, reduced-motion support, and six launch languages: English, German, French, Spanish, Italian, and Portuguese.
+Design inclusively across varied genders, body frames, fitness levels, and abilities while enforcing the 18+ beta boundary. Use neutral body language, accessible contrast, scalable type, large touch targets, screen-reader labels, color-independent status cues, reduced-motion support, and localization-ready copy.

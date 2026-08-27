@@ -1,4 +1,4 @@
-# Winter Arc Production Build Checklist
+# Mission — Kairo Production Build Checklist
 
 Updated after every completed and verified task.
 
@@ -62,13 +62,17 @@ Legend:
 - [ ] Step 14 — Automate the core journey with Maestro.
 - [ ] Step 15 — Pass the two-account by two-device verification matrix.
 - [ ] Step 16 — Expand and calibrate the mission library.
-- [ ] Step 17 — Remove or hide unfinished launch features.
+- [-] Step 17 — Remove or hide unfinished launch features. Challenges, social chat, leaderboard,
+  public photos, and unrestricted AI have no launch navigation entry; remaining deep-link and flag
+  hardening is pending.
 - [ ] Step 18 — Configure App Store, Play, and RevenueCat products.
 - [ ] Step 19 — Implement paywall, entitlement, Restore, and Manage Subscription.
 - [ ] Step 20 — Pass the adversarial money-path test matrix.
 - [ ] Step 21 — Publish lawyer-reviewed legal and support pages.
 - [ ] Step 22 — Verify account deletion end to end for two complete accounts.
-- [ ] Step 23 — Add privacy-safe crash reporting, analytics, icons, and splash.
+- [-] Step 23 — Add privacy-safe crash reporting, analytics, icons, and splash. The custom Kairo
+  insignia, opaque iOS icon, adaptive Android foreground/monochrome assets, splash, and favicon are
+  implemented; crash reporting and analytics remain.
 - [ ] Step 24 — Complete both store listings and privacy disclosures.
 - [ ] Step 25 — Build, test, upload, and submit the production artifacts.
 - [ ] Step 26 — Complete the internal beta and blocking-defect burn-down.
@@ -111,6 +115,7 @@ Legend:
   - [x] Android package identifier.
   - [x] Scheme and deep-link configuration.
   - [x] Version and build-number policy.
+  - [x] Mission — Kairo product name, scheme, bundle identifiers, and package identifier.
 - [x] Configure EAS.
   - [x] Development profile.
   - [x] Preview profile.

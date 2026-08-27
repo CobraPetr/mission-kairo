@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ChevronRight, LockKeyhole, Settings2 } from 'lucide-react-native';
+import { ChevronRight, Settings2 } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { useExecution } from '@/features/execution/execution-provider';
@@ -28,7 +28,7 @@ export default function ProfileScreen() {
       .slice(0, 2)
       .map((part) => part[0])
       .join('')
-      .toUpperCase() || 'WA';
+      .toUpperCase() || 'MK';
   return (
     <SafeScreen scroll>
       <ProtocolHeader
@@ -70,17 +70,6 @@ export default function ProfileScreen() {
             </View>
           ))}
         </Stack>
-
-        <View style={styles.lockedModule}>
-          <LockKeyhole color={colors.textDim} size={19} />
-          <Stack gap="x1" style={styles.lockedCopy}>
-            <MonoLabel>Social systems // offline</MonoLabel>
-            <AppText color="textMuted" variant="bodySmall">
-              Leaderboard and worldwide chat remain disabled until their safety systems are
-              complete.
-            </AppText>
-          </Stack>
-        </View>
       </Stack>
     </SafeScreen>
   );
@@ -116,16 +105,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-  },
-  lockedModule: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.x3,
-    paddingTop: spacing.x5,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  lockedCopy: {
-    flex: 1,
   },
 });

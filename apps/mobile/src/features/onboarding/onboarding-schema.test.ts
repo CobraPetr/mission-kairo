@@ -52,9 +52,9 @@ describe('onboarding draft schema', () => {
     expect(identity.weightKg).toBe(78);
   });
 
-  it('enforces a minimum onboarding age of 14', () => {
+  it('enforces the adult-only public beta boundary', () => {
     const result = identityInputSchema.safeParse({
-      ageInput: '13',
+      ageInput: '17',
       fullName: 'Alex Stone',
       heightMajorInput: '180',
       heightMinorInput: '',

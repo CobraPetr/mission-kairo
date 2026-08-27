@@ -17,7 +17,7 @@ describe('getAuthErrorMessage', () => {
       'Verify your email before activating the protocol.',
     );
     expect(getAuthErrorMessage(new Error('Verified guardian approval required'))).toBe(
-      'A verified parent or legal guardian must approve this account before activation.',
+      'Mission — Kairo is available to adults aged 18 or older during the public beta.',
     );
   });
 });

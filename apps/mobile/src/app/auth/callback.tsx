@@ -19,7 +19,7 @@ export default function AuthCallbackScreen() {
         <MonoLabel color="accent">Secure channel</MonoLabel>
         <AppText variant="title">VERIFYING ACCESS</AppText>
         <AppText color="textMuted" variant="bodySmall">
-          Keep Winter Arc open while the encrypted session is completed.
+          Keep Mission — Kairo open while the authenticated session is completed.
         </AppText>
       </Stack>
     </SafeScreen>

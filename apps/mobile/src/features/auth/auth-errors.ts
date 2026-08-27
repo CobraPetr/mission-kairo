@@ -20,7 +20,10 @@ export function getAuthErrorMessage(error: unknown): string {
     return 'Verify your email before activating the protocol.';
   }
   if (message.includes('verified guardian approval required')) {
-    return 'A verified parent or legal guardian must approve this account before activation.';
+    return 'Mission — Kairo is available to adults aged 18 or older during the public beta.';
+  }
+  if (message.includes('mission kairo beta requires age 18')) {
+    return 'Mission — Kairo is available to adults aged 18 or older during the public beta.';
   }
 
   return 'The secure channel could not complete the request. Try again.';

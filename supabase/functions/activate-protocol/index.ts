@@ -17,6 +17,7 @@ function publicDatabaseError(message: string): string {
   const allowed = [
     'Invalid plan manifest',
     'Minimum activation age is 14',
+    'Mission Kairo beta requires age 18 or older',
     'That username is unavailable',
     'Verified email required',
     'Verified guardian approval required',
@@ -61,7 +62,7 @@ Deno.serve(async (request) => {
   }
 
   if (parsed.data.assessment.age < 18) {
-    return jsonResponse({ error: 'Verified guardian approval required' }, 403);
+    return jsonResponse({ error: 'Mission Kairo beta requires age 18 or older' }, 403);
   }
 
   const plan = generateWinterArcPlan(parsed.data.assessment);

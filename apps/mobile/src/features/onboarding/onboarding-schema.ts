@@ -11,6 +11,8 @@ import {
 
 import { emotionalQuestions, type EmotionalQuestionId } from './questions';
 
+export const PUBLIC_BETA_MIN_AGE = 18;
+
 export const onboardingSections = [
   'emotional',
   'identity',
@@ -61,10 +63,10 @@ export const identityInputSchema = z
   })
   .superRefine((input, context) => {
     const age = Number(input.ageInput);
-    if (!Number.isInteger(age) || age < MIN_USER_AGE || age > MAX_USER_AGE) {
+    if (!Number.isInteger(age) || age < PUBLIC_BETA_MIN_AGE || age > MAX_USER_AGE) {
       context.addIssue({
         code: 'custom',
-        message: 'Enter an age from 14 to 100.',
+        message: 'Mission — Kairo beta is available to adults aged 18 to 100.',
         path: ['ageInput'],
       });
     }

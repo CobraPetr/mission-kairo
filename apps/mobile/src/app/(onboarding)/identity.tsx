@@ -112,7 +112,7 @@ export default function IdentityScreen() {
         label="AGE"
         maxLength={3}
         onChangeText={(value) => update('ageInput', value.replace(/\D/g, ''))}
-        placeholder="14+"
+        placeholder="18+"
         value={form.ageInput}
       />
 

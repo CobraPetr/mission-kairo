@@ -61,7 +61,7 @@ export default function VerifyEmailScreen() {
         <Stack gap="x3">
           <AppText variant="title">VERIFY YOUR EMAIL</AppText>
           <AppText color="textMuted" variant="body">
-            Open the secure link in your inbox. Winter Arc will return here and continue
+            Open the secure link in your inbox. Mission — Kairo will return here and continue
             automatically.
           </AppText>
         </Stack>

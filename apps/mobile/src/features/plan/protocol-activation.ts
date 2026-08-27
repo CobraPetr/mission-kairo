@@ -31,7 +31,7 @@ export async function activateProtocol(
 
   const isMinor = (draft.identity.age ?? 18) < 18;
   if (isMinor) {
-    throw new Error('Verified guardian approval required before protocol activation.');
+    throw new Error('Mission Kairo beta requires age 18 or older.');
   }
 
   const request = protocolActivationRequestSchema.parse({
