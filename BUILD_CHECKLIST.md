@@ -17,7 +17,8 @@ Legend:
 - [x] Phone/SMS verification is deferred to v1.1; v1.0 uses verified email.
 - [x] Monthly subscription: USD 29.99.
 - [x] Annual subscription: USD 99.99.
-- [x] Introductory trial: 48 hours.
+- [!] Introductory trial: 48 hours was requested, but Apple and Google require a minimum three-day
+  trial. Finalize the launch offer as three days before product creation.
 - [x] No lifetime purchase in v1.0.
 - [!] Determine whether the personal Play account was created after 13 November 2023. If so, start the required 12-tester/14-day closed test and treat the public launch as iOS-first.
 
@@ -47,7 +48,11 @@ Legend:
   daily-schedule constraints, forward-only status transitions, canonical XP derivation, drift
   detection/repair, generated-type equality, six-migration upgrade preservation, and two-client API
   isolation are locally verified. Review, merge, and hosted migration authorization remain.
-- [ ] Step 8 — Consolidate mission commands onto one idempotent, ledger-safe RPC path.
+- [-] Step 8 — Consolidate mission commands onto one idempotent, ledger-safe RPC path. The single
+  UUID/timestamp/revision command contract, immutable replay receipts, canonical ledger award,
+  retired legacy completion paths, mobile-issued command identities, and 170 database assertions
+  are locally verified. The real-API race harness passes repeatedly; pull-request review and hosted
+  deployment remain.
 - [ ] Step 9 — Harden account-scoped repositories and cache validation.
 - [ ] Step 10 — Add a durable offline mission-command queue.
 - [ ] Step 11 — Complete remote synchronization and canonical conflict recovery.
@@ -199,6 +204,8 @@ Legend:
 - [x] Implement Zod validation for every field.
 - [x] Implement encrypted native draft persistence with scoped SecureStore chunks and migration away from the old plain cache.
 - [x] Implement server draft persistence with scoped device caches, guest-to-account claiming, revision reconciliation, and offline pending sync.
+- [x] Return simultaneous onboarding draft conflicts as immediate HTTP 409 responses and verify the
+      two-client race without gateway retries.
 - [x] Implement exact-section resume.
 - [x] Implement canonical unit normalization.
 - [x] Submit a versioned immutable onboarding snapshot as part of idempotent protocol activation.
@@ -248,6 +255,7 @@ Legend:
 - [x] Build the normal daily state.
 - [x] Build mission-in-progress state.
 - [x] Build all-missions-complete state.
+- [x] Allow Day 90 to be sealed once and hide the final action after completion.
 - [x] Build partial-day state.
 - [ ] Build missed-day recovery state.
 - [ ] Build rest-day state.
@@ -257,13 +265,26 @@ Legend:
 - [x] Build active mission steps.
 - [x] Build pause and resume.
 - [-] Build skip and reschedule. Skip is functional; rescheduling rules remain.
-- [x] Create trusted mission-completion RPC with canonical server XP and idempotency.
+- [x] Consolidate begin, pause, resume, advance/complete, skip, and close-day mutations behind one
+      authenticated command RPC.
+- [x] Require a client UUID, expected revision, canonical target, and bounded client timestamp for
+      every authenticated mutation.
+- [x] Persist immutable replay receipts so identical retries return their original response and
+      mismatched reuse fails closed.
+- [x] Retire the competing completion RPC and the old non-idempotent command signature.
+- [x] Create trusted mission-completion handling with canonical server XP and idempotency.
 - [x] Create append-only mission events.
 - [x] Create XP ledger.
-- [x] Implement idempotent event IDs.
+- [x] Use the client command UUID as the stable event identity and generate it once per user action.
 - [x] Use server-authoritative completion and canonical refresh instead of speculative local XP.
+- [x] Retry a lost command response once with the same identity, preserve the canonical cache during
+      an outage, and surface failure without speculative completion.
 - [ ] Implement offline mutation queue and retry.
-- [x] Verify no mission or XP can complete twice.
+- [x] Verify no mission or XP can complete twice through pgTAP replay, rapid-tap, stale-revision,
+      cross-user-target, receipt-immutability, and ledger-total checks.
+- [x] Verify simultaneous live API commands locally. The automated same-key, different-key,
+      lost-response, stale-write, and concurrent-completion race harness passes repeatedly without
+      duplicated XP or gateway timeouts.
 
 ## 7. Roadmap and challenges
 
@@ -330,7 +351,8 @@ Legend:
 - [ ] Complete reduced-motion audit.
 - [ ] Complete performance audit.
 - [ ] Complete offline audit.
-- [!] Complete RLS and private-storage tests. Database/RLS behavior has 86 passing assertions; photo/private-object storage is not implemented yet.
+- [!] Complete RLS and private-storage tests. Database/RLS behavior has 170 passing assertions;
+  photo/private-object storage is not implemented yet.
 - [ ] Complete end-to-end test suite.
 - [ ] Test one real iPhone.
 - [ ] Test one real Android device.

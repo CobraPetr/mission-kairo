@@ -424,7 +424,7 @@ select throws_ok(
     select *
     from public.save_onboarding_draft(2, 'physical', '{}', 1, null)
   $$,
-  '40001',
+  'PT409',
   'Onboarding draft revision conflict',
   'stale draft saves are rejected'
 );
@@ -438,10 +438,12 @@ select results_eq(
 select results_eq(
   $$
     select awarded_xp::bigint
-    from public.complete_mission(
-      '61000000-0000-0000-0000-000000000101',
+    from public.execute_mission_command(
+      'advance',
+      'wa_alpha001.01.physical.baseline-walk.core',
+      1,
       '71000000-0000-0000-0000-000000000101',
-      1
+      timezone('utc', now())
     )
   $$,
   array[60::bigint],
@@ -463,27 +465,32 @@ select results_eq(
 select results_eq(
   $$
     select awarded_xp::bigint
-    from public.complete_mission(
-      '61000000-0000-0000-0000-000000000101',
+    from public.execute_mission_command(
+      'advance',
+      'wa_alpha001.01.physical.baseline-walk.core',
+      1,
       '71000000-0000-0000-0000-000000000101',
-      1
+      timezone('utc', now())
     )
   $$,
   array[60::bigint],
   'repeating an idempotency key returns the original award'
 );
 
-select results_eq(
+select throws_ok(
   $$
-    select awarded_xp::bigint
-    from public.complete_mission(
-      '61000000-0000-0000-0000-000000000101',
+    select *
+    from public.execute_mission_command(
+      'advance',
+      'wa_alpha001.01.physical.baseline-walk.core',
+      2,
       '71000000-0000-0000-0000-000000000102',
-      2
+      timezone('utc', now())
     )
   $$,
-  array[0::bigint],
-  'a completed mission cannot award XP under a new key'
+  '22023',
+  'Only the active mission can advance',
+  'a completed mission rejects a different command identity'
 );
 
 select results_eq(
@@ -495,14 +502,16 @@ select results_eq(
 select throws_ok(
   $$
     select *
-    from public.complete_mission(
-      '62000000-0000-0000-0000-000000000202',
+    from public.execute_mission_command(
+      'advance',
+      'wa_bravo001.01.physical.baseline-walk.core',
+      2,
       '71000000-0000-0000-0000-000000000202',
-      1
+      timezone('utc', now())
     )
   $$,
-  '42501',
-  'Mission is not available to this user',
+  '22023',
+  'Mission is not available today',
   'users cannot complete another user mission'
 );
 

@@ -106,15 +106,15 @@ export function PlanProvider({ children, repository = planRepository }: PlanProv
   }, [draft, ownerId, repository]);
 
   const refresh = useCallback(async () => {
-    if (!ownerId) return;
+    if (!ownerId || !hydrationKey) return;
     setHydratedOwner(null);
     setHydrationErrorOwner(null);
     setActivatedOwner(null);
     const stored = await repository.load(ownerId);
     dispatch(stored ? { plan: stored.plan, type: 'SUCCEED' } : { type: 'RESET' });
     setActivatedOwner(ownerId !== GUEST_WORKSPACE_ID && stored?.canonical ? ownerId : null);
-    setHydratedOwner(ownerId);
-  }, [ownerId, repository]);
+    setHydratedOwner(hydrationKey);
+  }, [hydrationKey, ownerId, repository]);
 
   const activate = useCallback(async () => {
     if (status !== 'authenticated' || !user) {

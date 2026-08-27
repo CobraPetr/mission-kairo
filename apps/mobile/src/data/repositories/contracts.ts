@@ -27,6 +27,14 @@ export type PlanRecord = {
   plan: WinterArcPlan;
 };
 
+export type ExecutionCommandRequest = {
+  clientOccurredAt: string;
+  command: 'begin' | 'pause' | 'resume' | 'advance' | 'skip' | 'close_day';
+  expectedRevision: number;
+  idempotencyKey: string;
+  targetId: string | null;
+};
+
 export interface OnboardingRepository {
   claimGuestWorkspace(userId: string): Promise<void>;
   clear(ownerId: WorkspaceOwnerId): Promise<void>;
@@ -55,9 +63,7 @@ export interface ExecutionRepository {
   clear(ownerId: WorkspaceOwnerId): Promise<void>;
   execute(
     userId: string,
-    command: 'begin' | 'pause' | 'resume' | 'advance' | 'skip' | 'close_day',
-    scheduledKey: string | null,
-    expectedRevision: number,
+    request: ExecutionCommandRequest,
   ): Promise<{
     result: 'active' | 'paused' | 'advanced' | 'completed' | 'skipped' | 'day_closed' | 'conflict';
     revision: number;

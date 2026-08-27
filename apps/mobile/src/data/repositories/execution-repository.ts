@@ -4,18 +4,19 @@ import {
 } from '../../features/execution/execution-state';
 
 import { GUEST_WORKSPACE_ID, type WorkspaceOwnerId } from './cache-scope';
-import { type ExecutionRepository, type Revisioned } from './contracts';
+import {
+  type ExecutionCommandRequest,
+  type ExecutionRepository,
+  type Revisioned,
+} from './contracts';
 import { type KeyValueStorage } from './onboarding-repository';
 
-export type ExecutionCommand = Parameters<ExecutionRepository['execute']>[1];
 export type ExecutionCommandResult = Awaited<ReturnType<ExecutionRepository['execute']>>;
 
 export type ExecutionCloudGateway = {
   execute(
     userId: string,
-    command: ExecutionCommand,
-    scheduledKey: string | null,
-    expectedRevision: number,
+    request: ExecutionCommandRequest,
   ): Promise<Exclude<ExecutionCommandResult, { result: 'conflict' }>>;
   load(userId: string): Promise<Revisioned<ExecutionState> | null>;
 };
@@ -33,6 +34,13 @@ export class ExecutionRevisionConflictError extends Error {
   constructor() {
     super('The execution changed on another device.');
     this.name = 'ExecutionRevisionConflictError';
+  }
+}
+
+export class ExecutionTransportError extends Error {
+  constructor(message = 'The mission command could not reach the server.') {
+    super(message);
+    this.name = 'ExecutionTransportError';
   }
 }
 
@@ -62,6 +70,15 @@ export function createExecutionRepository({
   legacyGuestKey,
   storage,
 }: ExecutionRepositoryDependencies): ExecutionRepository {
+  async function executeCloudCommand(userId: string, request: ExecutionCommandRequest) {
+    try {
+      return await cloud.execute(userId, request);
+    } catch (error) {
+      if (!(error instanceof ExecutionTransportError)) throw error;
+      return cloud.execute(userId, request);
+    }
+  }
+
   async function writeLocal(ownerId: WorkspaceOwnerId, state: StoredExecution): Promise<void> {
     await storage.setItem(cacheKey(ownerId), JSON.stringify(state));
   }
@@ -104,9 +121,9 @@ export function createExecutionRepository({
       }
     },
 
-    async execute(userId, command, scheduledKey, expectedRevision) {
+    async execute(userId, request) {
       try {
-        const result = await cloud.execute(userId, command, scheduledKey, expectedRevision);
+        const result = await executeCloudCommand(userId, request);
         await writeLocal(userId, result);
         return result;
       } catch (error) {

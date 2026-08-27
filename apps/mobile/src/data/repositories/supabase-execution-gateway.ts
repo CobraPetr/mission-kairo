@@ -1,17 +1,28 @@
 import { requireSupabase } from '@/data/supabase/client';
 import { type ExecutionState, executionStateSchema } from '@/features/execution/execution-state';
 
-import { type ExecutionCloudGateway, ExecutionRevisionConflictError } from './execution-repository';
+import {
+  type ExecutionCloudGateway,
+  ExecutionRevisionConflictError,
+  ExecutionTransportError,
+} from './execution-repository';
 
 export const supabaseExecutionGateway: ExecutionCloudGateway = {
-  async execute(userId, command, scheduledKey, expectedRevision) {
+  async execute(userId, request) {
     const { data, error } = await requireSupabase().rpc('execute_mission_command', {
-      p_command: command,
-      p_expected_revision: expectedRevision,
-      p_scheduled_key: scheduledKey ?? '',
+      p_client_occurred_at: request.clientOccurredAt,
+      p_command: request.command,
+      p_expected_revision: request.expectedRevision,
+      p_idempotency_key: request.idempotencyKey,
+      p_target_id: request.targetId ?? '',
     });
 
-    if (error?.code === '40001') throw new ExecutionRevisionConflictError();
+    if (error?.code === 'PT409' || error?.code === '40001') {
+      throw new ExecutionRevisionConflictError();
+    }
+    if (error && (!error.code || error.code.startsWith('PGRST0'))) {
+      throw new ExecutionTransportError(error.message);
+    }
     if (error) throw error;
     const commandResponse = data?.[0];
     if (!commandResponse) throw new Error('The mission command was not accepted.');

@@ -104,16 +104,20 @@ export function isMissionResolved(state: ExecutionState, missionId: string): boo
   );
 }
 
+export function canSealExecutionDay(state: ExecutionState, day: PlanDay | undefined): boolean {
+  return Boolean(
+    day &&
+    day.day === state.activeDay &&
+    !state.sealedDayNumbers.includes(day.day) &&
+    day.missions.every((mission) => isMissionResolved(state, mission.scheduledId)),
+  );
+}
+
 export function sealExecutionDay(
   state: ExecutionState,
   day: PlanDay | undefined,
 ): { sealed: boolean; state: ExecutionState } {
-  if (
-    !day ||
-    day.day !== state.activeDay ||
-    state.sealedDayNumbers.includes(day.day) ||
-    !day.missions.every((mission) => isMissionResolved(state, mission.scheduledId))
-  ) {
+  if (!day || !canSealExecutionDay(state, day)) {
     return { sealed: false, state };
   }
 

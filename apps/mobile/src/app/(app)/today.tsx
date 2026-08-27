@@ -3,6 +3,7 @@ import { Check, LockKeyhole, Play, RotateCcw } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useExecution } from '@/features/execution/execution-provider';
+import { canSealExecutionDay } from '@/features/execution/execution-state';
 import { usePlan } from '@/features/plan/plan-provider';
 import { colors, radii, spacing } from '@/theme/tokens';
 import {
@@ -164,7 +165,7 @@ export default function TodayScreen() {
               label={execution.missionStatus === 'paused' ? 'Resume mission' : 'Open next order'}
               onPress={() => void openMission(currentMission.scheduledId)}
             />
-          ) : allResolved && execution.activeDay < 90 ? (
+          ) : canSealExecutionDay(execution, day) ? (
             <Button
               label={`Seal day ${String(execution.activeDay).padStart(2, '0')}`}
               loading={busy}

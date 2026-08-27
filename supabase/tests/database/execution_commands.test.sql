@@ -3,7 +3,30 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, pgtap;
 
-select extensions.plan(20);
+select extensions.plan(21);
+
+create function pg_temp.execute_mission_command(
+  p_command text,
+  p_target_id text,
+  p_expected_revision bigint
+)
+returns table (
+  execution_revision bigint,
+  command_result text,
+  awarded_xp integer,
+  total_xp bigint
+)
+language sql
+as $$
+  select *
+  from public.execute_mission_command(
+    p_command,
+    coalesce(p_target_id, ''),
+    p_expected_revision,
+    gen_random_uuid(),
+    timezone('utc', now())
+  )
+$$;
 
 -- The legacy generator is production-revoked. Grant it only inside this rolled-back
 -- fixture transaction so the command tests can build their established v1 plan.
@@ -14,8 +37,15 @@ grant execute on function public.activate_protocol(
 select has_function(
   'public',
   'execute_mission_command',
+  array['text', 'text', 'bigint', 'uuid', 'timestamp with time zone'],
+  'retry-safe mission command RPC exists'
+);
+
+select hasnt_function(
+  'public',
+  'execute_mission_command',
   array['text', 'text', 'bigint'],
-  'revision-checked mission command RPC exists'
+  'the non-idempotent mission command signature is retired'
 );
 
 insert into auth.users (
@@ -55,7 +85,7 @@ select lives_ok(
 
 select lives_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'begin',
       (
         select mission.scheduled_key
@@ -79,7 +109,7 @@ select results_eq(
 
 select lives_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'begin',
       (
         select mission.scheduled_key
@@ -103,7 +133,7 @@ select results_eq(
 
 select lives_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'advance',
       (select scheduled_key from public.plan_missions where user_id = '91000000-0000-0000-0000-000000000101' and ordinal = 1 order by scheduled_key limit 1),
       2
@@ -120,7 +150,7 @@ select results_eq(
 
 select lives_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'advance',
       (select scheduled_key from public.plan_missions where user_id = '91000000-0000-0000-0000-000000000101' and ordinal = 1 order by scheduled_key limit 1),
       3
@@ -137,7 +167,7 @@ select results_eq(
 
 select lives_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'advance',
       (select scheduled_key from public.plan_missions where user_id = '91000000-0000-0000-0000-000000000101' and ordinal = 1 order by scheduled_key limit 1),
       4
@@ -160,20 +190,20 @@ select results_eq(
 
 select throws_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'advance',
       (select scheduled_key from public.plan_missions where user_id = '91000000-0000-0000-0000-000000000101' and ordinal = 1 order by scheduled_key limit 1),
       4
     )
   $$,
-  '40001',
+  'PT409',
   'Execution revision conflict',
   'a stale retry cannot complete or award XP twice'
 );
 
 select lives_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'begin',
       (
         select mission.scheduled_key
@@ -191,7 +221,7 @@ select lives_ok(
 
 select lives_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'skip',
       (
         select mission.scheduled_key
@@ -208,7 +238,7 @@ select lives_ok(
 );
 
 select lives_ok(
-  $$ select * from public.execute_mission_command('close_day', null, 7) $$,
+  $$ select * from pg_temp.execute_mission_command('close_day', null, 7) $$,
   'a fully resolved day can be sealed'
 );
 

@@ -113,6 +113,12 @@ jobs:
       - name: Exercise two authenticated API clients
         run: bash supabase/tests/api/two-client-isolation.sh
 
+      - name: Race onboarding draft revisions
+        run: bash supabase/tests/api/onboarding-draft-races.sh
+
+      - name: Race retry-safe mission commands
+        run: bash supabase/tests/api/mission-command-races.sh
+
       - name: Stop isolated Supabase stack
         if: always()
         run: supabase stop --no-backup

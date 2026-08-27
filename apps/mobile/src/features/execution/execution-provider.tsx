@@ -1,4 +1,5 @@
 import { type ScheduledMission } from '@winter-arc/domain';
+import { randomUUID } from 'expo-crypto';
 import {
   createContext,
   type PropsWithChildren,
@@ -136,7 +137,13 @@ export function ExecutionProvider({
       scheduledKey: string | null,
     ) => {
       if (status !== 'authenticated' || !user) return null;
-      const result = await repository.execute(user.id, command, scheduledKey, revisionRef.current);
+      const result = await repository.execute(user.id, {
+        clientOccurredAt: new Date().toISOString(),
+        command,
+        expectedRevision: revisionRef.current,
+        idempotencyKey: randomUUID(),
+        targetId: scheduledKey,
+      });
       revisionRef.current = result.revision;
       stateRef.current = result.value;
       setState(result.value);

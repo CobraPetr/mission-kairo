@@ -117,6 +117,59 @@ export type Database = {
           },
         ];
       };
+      mission_command_receipts: {
+        Row: {
+          awarded_xp: number;
+          client_occurred_at: string;
+          command: string;
+          command_result: string;
+          execution_revision: number;
+          expected_revision: number;
+          idempotency_key: string;
+          plan_id: string;
+          received_at: string;
+          target_scheduled_key: string | null;
+          total_xp: number;
+          user_id: string;
+        };
+        Insert: {
+          awarded_xp: number;
+          client_occurred_at: string;
+          command: string;
+          command_result: string;
+          execution_revision: number;
+          expected_revision: number;
+          idempotency_key: string;
+          plan_id: string;
+          received_at?: string;
+          target_scheduled_key?: string | null;
+          total_xp: number;
+          user_id: string;
+        };
+        Update: {
+          awarded_xp?: number;
+          client_occurred_at?: string;
+          command?: string;
+          command_result?: string;
+          execution_revision?: number;
+          expected_revision?: number;
+          idempotency_key?: string;
+          plan_id?: string;
+          received_at?: string;
+          target_scheduled_key?: string | null;
+          total_xp?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'mission_command_receipts_plan_owner_fk';
+            columns: ['plan_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id', 'user_id'];
+          },
+        ];
+      };
       mission_events: {
         Row: {
           client_occurred_at: string | null;
@@ -596,23 +649,13 @@ export type Database = {
           execution_revision: number;
         }[];
       };
-      complete_mission: {
-        Args: {
-          p_expected_revision?: number;
-          p_idempotency_key: string;
-          p_plan_mission_id: string;
-        };
-        Returns: {
-          awarded_xp: number;
-          execution_revision: number;
-          total_xp: number;
-        }[];
-      };
       execute_mission_command: {
         Args: {
+          p_client_occurred_at: string;
           p_command: string;
           p_expected_revision: number;
-          p_scheduled_key: string;
+          p_idempotency_key: string;
+          p_target_id: string;
         };
         Returns: {
           awarded_xp: number;

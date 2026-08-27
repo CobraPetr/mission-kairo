@@ -5,6 +5,29 @@ set local search_path = public, extensions, pgtap;
 
 select extensions.plan(36);
 
+create function pg_temp.execute_mission_command(
+  p_command text,
+  p_target_id text,
+  p_expected_revision bigint
+)
+returns table (
+  execution_revision bigint,
+  command_result text,
+  awarded_xp integer,
+  total_xp bigint
+)
+language sql
+as $$
+  select *
+  from public.execute_mission_command(
+    p_command,
+    coalesce(p_target_id, ''),
+    p_expected_revision,
+    gen_random_uuid(),
+    timezone('utc', now())
+  )
+$$;
+
 select has_function(
   'private',
   'detect_xp_drift',
@@ -249,7 +272,7 @@ set local request.jwt.claim.role = 'authenticated';
 
 select lives_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'begin',
       (
         select mission.scheduled_key
@@ -266,7 +289,7 @@ select lives_ok(
 
 select lives_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'advance',
       (
         select mission.scheduled_key
@@ -283,7 +306,7 @@ select lives_ok(
 
 select lives_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'advance',
       (
         select mission.scheduled_key
@@ -300,7 +323,7 @@ select lives_ok(
 
 select lives_ok(
   $$
-    select * from public.execute_mission_command(
+    select * from pg_temp.execute_mission_command(
       'advance',
       (
         select mission.scheduled_key
