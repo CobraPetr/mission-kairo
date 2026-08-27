@@ -343,7 +343,7 @@ export type Database = {
           id: string;
           kind: string;
           plan_id: string;
-          scheduled_for: string | null;
+          scheduled_for: string;
           user_id: string;
         };
         Insert: {
@@ -352,7 +352,7 @@ export type Database = {
           id?: string;
           kind: string;
           plan_id: string;
-          scheduled_for?: string | null;
+          scheduled_for: string;
           user_id: string;
         };
         Update: {
@@ -361,7 +361,7 @@ export type Database = {
           id?: string;
           kind?: string;
           plan_id?: string;
-          scheduled_for?: string | null;
+          scheduled_for?: string;
           user_id?: string;
         };
         Relationships: [
@@ -452,6 +452,8 @@ export type Database = {
           plan_key: string;
           seed_version: string | null;
           status: string;
+          time_zone: string;
+          time_zone_anchored_at: string | null;
           updated_at: string;
           user_id: string;
         };
@@ -467,6 +469,8 @@ export type Database = {
           plan_key: string;
           seed_version?: string | null;
           status?: string;
+          time_zone?: string;
+          time_zone_anchored_at?: string | null;
           updated_at?: string;
           user_id: string;
         };
@@ -482,6 +486,8 @@ export type Database = {
           plan_key?: string;
           seed_version?: string | null;
           status?: string;
+          time_zone?: string;
+          time_zone_anchored_at?: string | null;
           updated_at?: string;
           user_id?: string;
         };
@@ -688,6 +694,18 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      set_plan_time_zone: {
+        Args: { p_plan_id: string; p_time_zone: string; p_user_id: string };
+        Returns: undefined;
+      };
+      sync_execution_calendar: {
+        Args: never;
+        Returns: {
+          active_day: number;
+          calendar_changed: boolean;
+          execution_revision: number;
+        }[];
       };
     };
     Enums: {

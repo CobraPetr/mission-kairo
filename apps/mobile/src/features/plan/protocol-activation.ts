@@ -8,6 +8,8 @@ import { requireSupabase } from '@/data/supabase/client';
 import { type Json } from '@/data/supabase/database.types';
 import { type OnboardingDraft } from '@/features/onboarding/onboarding-schema';
 
+import { resolveDeviceTimeZone } from './device-time-zone';
+
 const TERMS_VERSION = '2026-08-21';
 
 export type ProtocolActivation = {
@@ -38,6 +40,7 @@ export async function activateProtocol(
     schemaVersion: draft.version,
     termsAcceptedAt: acceptedAt,
     termsVersion: TERMS_VERSION,
+    timeZone: resolveDeviceTimeZone(),
     username: draft.identity.username,
   });
   const { data, error } = await requireSupabase().functions.invoke('activate-protocol', {

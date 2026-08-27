@@ -16,6 +16,7 @@ export const executionStateSchema = z.object({
   currentMissionId: z.string().nullable(),
   currentStepIndex: z.number().int().min(0),
   events: z.array(missionEventSchema),
+  missedDayNumbers: z.array(z.number().int().min(1).max(WINTER_ARC_DURATION_DAYS)).default([]),
   missionStatus: z.enum(['idle', 'active', 'paused']),
   sealedDayNumbers: z.array(z.number().int().min(1).max(WINTER_ARC_DURATION_DAYS)).default([]),
   skippedMissionIds: z.array(z.string()),
@@ -32,6 +33,7 @@ export function createEmptyExecutionState(): ExecutionState {
     currentMissionId: null,
     currentStepIndex: 0,
     events: [],
+    missedDayNumbers: [],
     missionStatus: 'idle',
     sealedDayNumbers: [],
     skippedMissionIds: [],
@@ -108,6 +110,7 @@ export function canSealExecutionDay(state: ExecutionState, day: PlanDay | undefi
   return Boolean(
     day &&
     day.day === state.activeDay &&
+    !state.missedDayNumbers.includes(day.day) &&
     !state.sealedDayNumbers.includes(day.day) &&
     day.missions.every((mission) => isMissionResolved(state, mission.scheduledId)),
   );

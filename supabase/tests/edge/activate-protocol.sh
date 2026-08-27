@@ -106,6 +106,7 @@ task_payload="$(
     schemaVersion: 2,
     termsAcceptedAt: $acceptedAt,
     termsVersion: "2026-08-21",
+    timeZone: "Europe/Zurich",
     username: $username
   }'
 )"
@@ -135,6 +136,21 @@ task_first_identity="$(jq -c '{executionRevision, planId, planKey}' <<<"$task_fi
 task_second_identity="$(jq -c '{executionRevision, planId, planKey}' <<<"$task_second_response")"
 if [[ "$task_first_identity" != "$task_second_identity" ]]; then
   echo 'Activation replay did not return the same canonical identity' >&2
+  exit 1
+fi
+
+task_plan_id="$(jq -r '.planId' <<<"$task_first_response")"
+task_calendar_state="$(
+  curl -sS \
+    "$task_api_url/rest/v1/plans?select=time_zone,plan_days(day_number,scheduled_for)&id=eq.$task_plan_id&plan_days.day_number=eq.1" \
+    -H "apikey: $task_anon_key" \
+    -H "Authorization: Bearer $task_access_token"
+)"
+if ! jq -e '
+  .[0].time_zone == "Europe/Zurich" and
+  (.[0].plan_days[0].scheduled_for | type == "string")
+' <<<"$task_calendar_state" >/dev/null; then
+  echo "Activation did not persist its calendar timezone: $task_calendar_state" >&2
   exit 1
 fi
 

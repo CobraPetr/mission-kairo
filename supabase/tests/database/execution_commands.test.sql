@@ -244,8 +244,8 @@ select lives_ok(
 
 select results_eq(
   $$ select active_day || ':' || revision from public.arc_executions where user_id = '91000000-0000-0000-0000-000000000101' $$,
-  array['2:8'::text],
-  'closing day one advances the canonical execution to day two'
+  array['1:8'::text],
+  'closing day one preserves the calendar-locked active day'
 );
 
 select results_eq(
@@ -256,8 +256,8 @@ select results_eq(
     where progress.user_id = '91000000-0000-0000-0000-000000000101'
       and day.day_number in (1, 2)
   $$,
-  array['1:sealed,2:available'::text],
-  'day closure seals the old day and unlocks only the next day'
+  array['1:sealed,2:locked'::text],
+  'day closure seals the current day without unlocking tomorrow early'
 );
 
 select results_eq(

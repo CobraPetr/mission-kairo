@@ -88,4 +88,16 @@ describe('mission completion', () => {
     expect(duplicate.sealed).toBe(false);
     expect(duplicate.state).toBe(first.state);
   });
+
+  it('never seals a calendar day already recorded as missed', () => {
+    const day = { day: 1, kind: 'training' as const, missions: [mission] };
+    const state = {
+      ...createEmptyExecutionState(),
+      completedMissionIds: [mission.scheduledId],
+      missedDayNumbers: [1],
+    };
+
+    expect(canSealExecutionDay(state, day)).toBe(false);
+    expect(sealExecutionDay(state, day)).toEqual({ sealed: false, state });
+  });
 });

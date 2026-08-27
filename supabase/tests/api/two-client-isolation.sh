@@ -97,6 +97,7 @@ activate_client() {
       schemaVersion: 2,
       termsAcceptedAt: $acceptedAt,
       termsVersion: "2026-08-21",
+      timeZone: "Europe/Zurich",
       username: $username
     }'
   )"

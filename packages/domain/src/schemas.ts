@@ -69,6 +69,7 @@ export const planDaySchema = z.object({
   day: z.number().int().min(1).max(WINTER_ARC_DURATION_DAYS),
   kind: z.enum(['training', 'recovery', 'checkpoint']),
   missions: z.array(scheduledMissionSchema).min(MIN_DAILY_MISSIONS).max(MAX_DAILY_MISSIONS),
+  scheduledFor: z.iso.date().optional(),
 });
 
 const planManifestSchema = z.object({
@@ -89,6 +90,7 @@ export const protocolActivationRequestSchema = z.object({
   schemaVersion: z.literal(2),
   termsAcceptedAt: z.iso.datetime({ offset: true }),
   termsVersion: z.string().trim().min(1).max(64),
+  timeZone: z.string().trim().min(1).max(64),
   username: z
     .string()
     .trim()

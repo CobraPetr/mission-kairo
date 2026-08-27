@@ -24,7 +24,7 @@ export const supabasePlanGateway: PlanCloudGateway = {
       await Promise.all([
         client
           .from('plan_days')
-          .select('id, day_number, kind, user_id')
+          .select('id, day_number, kind, scheduled_for, user_id')
           .eq('plan_id', plan.id)
           .order('day_number'),
         client
@@ -68,6 +68,7 @@ export const supabasePlanGateway: PlanCloudGateway = {
       day: day.day_number,
       kind: day.kind as PlanDay['kind'],
       missions: missionsByDay.get(day.id) ?? [],
+      ...(day.scheduled_for ? { scheduledFor: day.scheduled_for } : {}),
     }));
 
     return winterArcPlanSchema.parse({

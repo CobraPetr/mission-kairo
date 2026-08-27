@@ -81,12 +81,33 @@ Deno.serve(async (request) => {
   });
 
   if (error) {
+    console.error('activate_generated_protocol failed', {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      message: error.message,
+    });
     const message = publicDatabaseError(error.message);
     return jsonResponse({ error: message }, error.code === '23505' ? 409 : 400);
   }
 
   const activated = data?.[0];
   if (!activated) return jsonResponse({ error: 'Protocol activation failed' }, 500);
+
+  const { error: timeZoneError } = await adminClient.rpc('set_plan_time_zone', {
+    p_plan_id: activated.activated_plan_id,
+    p_time_zone: parsed.data.timeZone,
+    p_user_id: userData.user.id,
+  });
+  if (timeZoneError) {
+    console.error('set_plan_time_zone failed', {
+      code: timeZoneError.code,
+      details: timeZoneError.details,
+      hint: timeZoneError.hint,
+      message: timeZoneError.message,
+    });
+    return jsonResponse({ error: 'Protocol activation failed' }, 500);
+  }
 
   return jsonResponse(
     {

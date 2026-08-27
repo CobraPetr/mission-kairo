@@ -445,15 +445,15 @@ select throws_ok(
       where user_id = 'd1000000-0000-0000-0000-000000000001';
       execute 'alter table public.plan_days disable trigger plan_days_prevent_update';
       update public.plan_days
-      set scheduled_for = current_date
+      set scheduled_for = scheduled_for + 200
       where plan_id = v_plan_id and day_number = 1;
       perform private.assert_plan_calendar(v_plan_id);
     end
     $inner$
   $outer$,
   '23514',
-  'Plan dates must be absent or complete',
-  'a partially dated plan calendar fails'
+  'Plan dates must be consecutive',
+  'a non-consecutive plan calendar fails'
 );
 
 select throws_ok(

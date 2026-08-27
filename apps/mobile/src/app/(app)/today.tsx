@@ -57,6 +57,8 @@ export default function TodayScreen() {
         execution.completedMissionIds.includes(mission.scheduledId) ||
         execution.skippedMissionIds.includes(mission.scheduledId),
     );
+  const dayMissed = execution.missedDayNumbers.includes(day.day);
+  const daySealed = execution.sealedDayNumbers.includes(day.day);
 
   async function openMission(missionId: string) {
     const opened = await beginMission(missionId);
@@ -69,11 +71,15 @@ export default function TodayScreen() {
         code={`DAY ${String(execution.activeDay).padStart(2, '0')}`}
         eyebrow="Command center"
         subtitle={
-          allResolved
-            ? allComplete
-              ? 'Daily orders complete. Recovery is now part of the mission.'
-              : 'Daily orders resolved. Seal the record and continue without hiding the skips.'
-            : 'Execute the next order. Nothing else matters yet.'
+          dayMissed
+            ? 'This date passed without a sealed record. The streak resets, but the protocol continues.'
+            : daySealed
+              ? 'Today is sealed. The next protocol opens on its assigned calendar date.'
+              : allResolved
+                ? allComplete
+                  ? 'Daily orders complete. Recovery is now part of the mission.'
+                  : 'Daily orders resolved. Seal the record and continue without hiding the skips.'
+                : 'Execute the next order. Nothing else matters yet.'
         }
         title="TODAY"
       />
@@ -87,12 +93,26 @@ export default function TodayScreen() {
         <SectionPanel label="Mission status" raised>
           <Inline align="flex-end" justify="space-between">
             <Stack gap="x1">
-              <MonoLabel color="accent">{allComplete ? 'Complete' : 'In progress'}</MonoLabel>
+              <MonoLabel color="accent">
+                {dayMissed
+                  ? 'Missed'
+                  : daySealed
+                    ? 'Sealed'
+                    : allComplete
+                      ? 'Complete'
+                      : 'In progress'}
+              </MonoLabel>
               <AppText variant="title">{Math.round(progress * 100)}%</AppText>
             </Stack>
             <StatusBadge
               label={
-                allComplete ? 'Orders complete' : `${completedCount} / ${missions.length} complete`
+                dayMissed
+                  ? 'Date passed'
+                  : daySealed
+                    ? 'Record sealed'
+                    : allComplete
+                      ? 'Orders complete'
+                      : `${completedCount} / ${missions.length} complete`
               }
               tone={allComplete ? 'success' : 'active'}
             />
@@ -123,7 +143,7 @@ export default function TodayScreen() {
               <Pressable
                 key={mission.scheduledId}
                 accessibilityRole="button"
-                disabled={!ready && !active}
+                disabled={dayMissed || daySealed || (!ready && !active)}
                 onPress={() => void openMission(mission.scheduledId)}
                 style={({ pressed }) => [
                   styles.missionRow,

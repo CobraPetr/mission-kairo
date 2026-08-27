@@ -141,6 +141,8 @@ begin
     return;
   end if;
 
+  perform public.sync_execution_calendar();
+
   select
     plan.id,
     execution.active_day,
@@ -202,6 +204,18 @@ begin
   end if;
 
   if p_command = 'close_day' then
+    if not exists (
+      select 1
+      from public.day_progress as progress
+      join public.plan_days as day on day.id = progress.plan_day_id
+      where day.plan_id = v_plan_id
+        and day.user_id = v_user_id
+        and day.day_number = v_active_day
+        and progress.status in ('available', 'in_progress')
+    ) then
+      raise exception using errcode = '22023', message = 'The active day cannot be sealed';
+    end if;
+
     if exists (
       select 1
       from public.plan_days as day
@@ -229,27 +243,7 @@ begin
       and day.user_id = v_user_id
       and day.day_number = v_active_day;
 
-    if v_active_day < 90 then
-      update public.day_progress as progress
-      set status = 'available'
-      from public.plan_days as day
-      where day.id = progress.plan_day_id
-        and day.plan_id = v_plan_id
-        and day.user_id = v_user_id
-        and day.day_number = v_active_day + 1;
-
-      update public.mission_progress as progress
-      set status = 'available'
-      from public.plan_missions as mission
-      join public.plan_days as day
-        on day.id = mission.plan_day_id
-        and day.plan_id = mission.plan_id
-        and day.user_id = mission.user_id
-      where progress.plan_mission_id = mission.id
-        and day.plan_id = v_plan_id
-        and day.user_id = v_user_id
-        and day.day_number = v_active_day + 1;
-    else
+    if v_active_day = 90 then
       update public.plans
       set status = 'completed', completed_at = v_now
       where id = v_plan_id and user_id = v_user_id;
@@ -257,7 +251,7 @@ begin
 
     update public.arc_executions
     set
-      active_day = least(v_active_day + 1, 90),
+      active_day = v_active_day,
       completed_at = case when v_active_day = 90 then v_now else null end,
       revision = revision + 1
     where plan_id = v_plan_id

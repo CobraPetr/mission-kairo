@@ -46,6 +46,7 @@ describe('progress metrics', () => {
   it('derives a true consecutive streak from sealed day history', () => {
     expect(calculateSealedDayStreak([1, 2, 3, 5, 6, 7, 7])).toBe(3);
     expect(calculateSealedDayStreak([1, 2, 4])).toBe(1);
+    expect(calculateSealedDayStreak([1, 2], [3])).toBe(0);
     expect(calculateSealedDayStreak([])).toBe(0);
   });
 });

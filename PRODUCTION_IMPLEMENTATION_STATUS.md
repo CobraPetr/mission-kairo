@@ -41,12 +41,12 @@ Status: **IMPLEMENTED — NEEDS TESTING**
 - RLS enabled on every implemented user-owned table.
 - Owner-only read policies and revoked direct canonical writes implemented.
 - Server-managed private-profile columns are no longer client-writable.
-- 170 ownership, activation, canonical XP, idempotency, revision-conflict, and integrity assertions
+- 193 ownership, activation, canonical XP, calendar, idempotency, revision-conflict, and integrity assertions
   pass against the isolated Supabase stack.
 - The v1 activation path is email-only. Phone collection, SMS verification, phone claims, and
   self-attested guardian approval have been removed from the active client path.
-- The forward-only activation policy requires verified email, rejects users under 14, and rejects
-  all ages 14–17 until a separately verified guardian workflow is legally approved.
+- The public beta policy requires verified email and activates adults only. Ages below 18 remain
+  closed for v1.0 instead of shipping an unverified guardian workflow.
 - The hosted `public` schema passes Supabase lint with warnings treated as failures.
 
 Remaining verification:
@@ -55,8 +55,7 @@ Remaining verification:
   after the pending migrations and Edge Function are approved and deployed.
 - Configure authenticated SMTP and verify signup, resend, reset, expiry, rate limits, deletion, and
   second-device restoration on iOS and Android.
-- Complete legal review and design for verifiable guardian approval before allowing ages 14–17 to
-  activate.
+- Keep minor activation disabled throughout the public beta.
 
 ## First milestone
 
@@ -75,7 +74,9 @@ Implemented and verified locally:
   mission-command races; stale writes no longer trigger gateway retry timeouts.
 - Lost command responses retry once with their original identity; persistent outages retain the last
   canonical cache and never claim speculative completion.
-- 121 passing mobile tests, 15 passing domain tests, strict type-checks, 170 passing database
+- Every plan is fixed to 90 real dates in its activation time zone. Missed dates expire without XP,
+  reset the active streak, and cannot be reopened or bypassed by manual day jumps.
+- 123 passing mobile tests, 15 passing domain tests, strict type-checks, 193 passing database
   assertions, passing confirmed-user Edge activation/replay and two-client API isolation tests, a
   populated six-migration upgrade test, generated-type equality, and clean local
   public/private-schema lint.
@@ -83,7 +84,6 @@ Implemented and verified locally:
 Remaining before this milestone is fully verified:
 
 - Configure real SMTP with an authenticated sender domain and test real email journeys.
-- Implement a legally approved, verifiable guardian workflow for ages 14–17; activation currently
-  fails closed.
+- Preserve the 18+ beta boundary and keep minor activation out of the v1.0 interface.
 - Run the complete flow with two real hosted users and on two devices.
 - Add durable offline mission mutation queue/retry; current offline support is read-only cached state.

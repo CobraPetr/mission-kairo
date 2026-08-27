@@ -28,7 +28,10 @@ export default function ProgressScreen() {
   const sealedThisWeek = execution.sealedDayNumbers.filter(
     (day) => day >= currentWeekStart && day < currentWeekStart + 7,
   ).length;
-  const currentStreak = calculateSealedDayStreak(execution.sealedDayNumbers);
+  const currentStreak = calculateSealedDayStreak(
+    execution.sealedDayNumbers,
+    execution.missedDayNumbers,
+  );
   return (
     <SafeScreen scroll>
       <ProtocolHeader

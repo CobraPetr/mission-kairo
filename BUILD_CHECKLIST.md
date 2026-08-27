@@ -9,16 +9,15 @@ Legend:
 - `[x]` Implemented, checked, and free of known blocking defects
 - `[!]` Blocked by an external account, credential, review, or decision
 
-## Launch v1.0 decisions — approved 21 August 2026
+## Launch v1.0 decisions — updated 27 August 2026
 
 - [x] Google Play developer account type: personal.
-- [x] Public launch age: 14+.
-- [x] Users aged 14–17 require verified guardian approval before protocol activation.
+- [x] Public beta activation age: 18+.
+- [x] Minor accounts are out of scope for v1.0; no guardian workflow ships in the beta.
 - [x] Phone/SMS verification is deferred to v1.1; v1.0 uses verified email.
 - [x] Monthly subscription: USD 29.99.
 - [x] Annual subscription: USD 99.99.
-- [!] Introductory trial: 48 hours was requested, but Apple and Google require a minimum three-day
-  trial. Finalize the launch offer as three days before product creation.
+- [x] Introductory trial: three days, matching the store-supported minimum.
 - [x] No lifetime purchase in v1.0.
 - [!] Determine whether the personal Play account was created after 13 November 2023. If so, start the required 12-tester/14-day closed test and treat the public launch as iOS-first.
 
@@ -50,14 +49,16 @@ Legend:
   isolation are locally verified. Review, merge, and hosted migration authorization remain.
 - [-] Step 8 — Consolidate mission commands onto one idempotent, ledger-safe RPC path. The single
   UUID/timestamp/revision command contract, immutable replay receipts, canonical ledger award,
-  retired legacy completion paths, mobile-issued command identities, and 170 database assertions
+  retired legacy completion paths, mobile-issued command identities, and 193 database assertions
   are locally verified. The real-API race harness passes repeatedly; pull-request review and hosted
   deployment remain.
 - [ ] Step 9 — Harden account-scoped repositories and cache validation.
 - [ ] Step 10 — Add a durable offline mission-command queue.
 - [ ] Step 11 — Complete remote synchronization and canonical conflict recovery.
 - [ ] Step 12 — Finish username claiming and add localization architecture.
-- [ ] Step 13 — Build missed-day, rest-day, and correct streak handling.
+- [-] Step 13 — Build missed-day, rest-day, and correct streak handling. Real calendar dates,
+  activation-time-zone anchoring, missed-day expiry, streak reset, and no-speed-running behavior are
+  verified; the dedicated recovery-day presentation remains.
 - [ ] Step 14 — Automate the core journey with Maestro.
 - [ ] Step 15 — Pass the two-account by two-device verification matrix.
 - [ ] Step 16 — Expand and calibrate the mission library.
@@ -257,7 +258,7 @@ Legend:
 - [x] Build all-missions-complete state.
 - [x] Allow Day 90 to be sealed once and hide the final action after completion.
 - [x] Build partial-day state.
-- [ ] Build missed-day recovery state.
+- [x] Build missed-day state with expired missions, streak reset, and a non-actionable Today view.
 - [ ] Build rest-day state.
 - [x] Build offline-cached state.
 - [-] Build sync-conflict and server-error states. Canonical refresh and visible retry errors are implemented; native two-device UX verification remains.
@@ -285,6 +286,10 @@ Legend:
 - [x] Verify simultaneous live API commands locally. The automated same-key, different-key,
       lost-response, stale-write, and concurrent-completion race harness passes repeatedly without
       duplicated XP or gateway timeouts.
+- [x] Anchor every protocol to 90 real calendar dates in the user's activation time zone.
+- [x] Keep sealed days on screen until the next assigned date; never unlock tomorrow early.
+- [x] Expire unresolved past days as missed, close their missions without XP, and reset the streak.
+- [x] Prevent manual day jumps and make repeated calendar synchronization idempotent.
 
 ## 7. Roadmap and challenges
 

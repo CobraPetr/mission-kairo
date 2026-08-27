@@ -49,6 +49,8 @@ export const supabaseExecutionGateway: ExecutionCloudGateway = {
 
   async load(userId) {
     const client = requireSupabase();
+    const { error: calendarError } = await client.rpc('sync_execution_calendar');
+    if (calendarError) throw calendarError;
     const { data: plan, error: planError } = await client
       .from('plans')
       .select('id, user_id')
@@ -104,6 +106,9 @@ export const supabaseExecutionGateway: ExecutionCloudGateway = {
         : null,
       currentStepIndex: execution.current_step_index,
       events: [],
+      missedDayNumbers: daysResult.data
+        .filter((day) => day.status === 'missed')
+        .map((day) => day.plan_days.day_number),
       missionStatus: execution.mission_status as ExecutionState['missionStatus'],
       sealedDayNumbers: daysResult.data
         .filter((day) => day.status === 'sealed')

@@ -53,6 +53,7 @@ export type PlanDay = {
   day: number;
   kind: DayKind;
   missions: ScheduledMission[];
+  scheduledFor?: string;
 };
 
 type PlanManifest = {
