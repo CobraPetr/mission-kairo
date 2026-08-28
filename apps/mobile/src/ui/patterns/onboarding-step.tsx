@@ -52,7 +52,7 @@ export function OnboardingStep({
             {prompt}
           </AppText>
           <AppText color="textMuted" variant="bodySmall">
-            Your answers shape the protocol. Private fields are never shown on the leaderboard.
+            Your answers shape your protocol and remain inside your private account workspace.
           </AppText>
         </Stack>
 

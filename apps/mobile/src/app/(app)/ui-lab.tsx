@@ -1,5 +1,7 @@
+import { Redirect } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
+import { publicRuntimeConfig } from '@/config/runtime';
 import { colors, spacing } from '@/theme/tokens';
 import {
   AppText,
@@ -19,6 +21,10 @@ import {
 import { ProtocolHeader } from '@/ui/patterns/protocol-header';
 
 export default function UiLabScreen() {
+  if (publicRuntimeConfig.appEnvironment !== 'development') {
+    return <Redirect href="/(app)/today" />;
+  }
+
   return (
     <SafeScreen scroll>
       <ProtocolHeader

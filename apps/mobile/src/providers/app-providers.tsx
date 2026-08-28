@@ -10,6 +10,7 @@ import { createDevelopmentAuthAdapter } from '@/features/boot/development-previe
 import { ExecutionProvider } from '@/features/execution/execution-provider';
 import { OnboardingProvider } from '@/features/onboarding/onboarding-provider';
 import { PlanProvider } from '@/features/plan/plan-provider';
+import { SubscriptionProvider } from '@/features/subscription/subscription-provider';
 
 const developmentAuthAdapter = createDevelopmentAuthAdapter({
   appEnvironment: publicRuntimeConfig.appEnvironment,
@@ -38,11 +39,13 @@ export function AppProviders({ children }: PropsWithChildren) {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider developmentAdapter={developmentAuthAdapter}>
-            <OnboardingProvider>
-              <PlanProvider>
-                <ExecutionProvider>{children}</ExecutionProvider>
-              </PlanProvider>
-            </OnboardingProvider>
+            <SubscriptionProvider>
+              <OnboardingProvider>
+                <PlanProvider>
+                  <ExecutionProvider>{children}</ExecutionProvider>
+                </PlanProvider>
+              </OnboardingProvider>
+            </SubscriptionProvider>
           </AuthProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

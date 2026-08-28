@@ -18,7 +18,7 @@ This application uses Expo Router and strict TypeScript. Product progress is tra
 
 ## Hosted authentication setup
 
-The application already contains the complete email-link and phone-code flows. To deliver real messages, connect a hosted Supabase project and configure its providers:
+The application contains the complete verified-email authentication flow. To deliver real messages, connect the hosted Supabase project and configure its email provider:
 
 1. Copy the project URL and public publishable/anonymous key into a local `.env` using `.env.example`.
 2. In Supabase Auth, enable Email with **Confirm email** turned on.

@@ -6,6 +6,7 @@ import { useExecution } from '@/features/execution/execution-provider';
 import { useOnboarding } from '@/features/onboarding/onboarding-provider';
 import { resolveOnboardingResumeRoute } from '@/features/onboarding/resolve-onboarding-route';
 import { usePlan } from '@/features/plan/plan-provider';
+import { useSubscription } from '@/features/subscription/subscription-provider';
 import { AppText, ErrorState, MonoLabel, SafeScreen, Stack } from '@/ui/primitives';
 
 import { adaptAuthStatusForBoot } from './development-preview-adapter';
@@ -44,6 +45,7 @@ export function CanonicalRouteGate({ children }: PropsWithChildren) {
     hydrationError: executionHydrationError,
     retryHydration: retryExecutionHydration,
   } = useExecution();
+  const { access: subscriptionAccess } = useSubscription();
 
   const auth = adaptAuthStatusForBoot(status, developmentPreview);
   const onboardingRoute = onboardingHydrated
@@ -74,7 +76,7 @@ export function CanonicalRouteGate({ children }: PropsWithChildren) {
           : user.email_confirmed_at
             ? 'complete'
             : 'required',
-      entitlement: 'notEnforced',
+      entitlement: subscriptionAccess,
       guardianApproval: guardianApprovalState(onboardingHydrated, draft.identity.age),
       onboarding: !onboardingHydrated ? 'unknown' : onboardingComplete ? 'complete' : 'required',
       onboardingRoute,
@@ -94,6 +96,7 @@ export function CanonicalRouteGate({ children }: PropsWithChildren) {
       onboardingRoute,
       planHydrated,
       planState.status,
+      subscriptionAccess,
       user,
       workspaceError,
     ],

@@ -1,4 +1,4 @@
-appId: com.winterarc.app
+appId: com.missionkairo.app
 name: Boot resolver preserves onboarding across cold and warm starts
 ---
 - launchApp:

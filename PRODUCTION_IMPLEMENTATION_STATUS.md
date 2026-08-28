@@ -21,20 +21,27 @@ Status: **VERIFIED**
 - Ownership foreign keys, indexes, constraints, timestamps, cascades, immutable records, and trusted RPC boundaries implemented.
 - Mobile repository contracts and scoped cache-key rules implemented.
 - The `winter-arc-development` project is active in Frankfurt on the free plan.
-- All seven prior ordered migrations are applied to the hosted project. The eighth through tenth
-  migrations for the canonical generator, hardened invariants, and retry-safe mission commands are
-  locally verified and intentionally await review and deployment approval.
+- All 13 ordered migrations are applied to the hosted project, including the canonical generator,
+  hardened invariants, calendar enforcement, retry-safe mission commands, and PostgREST-safe draft
+  conflicts.
 - Hosted database types are generated for the mobile client.
-- The authenticated `delete-account` Edge Function is deployed and active.
+- The authenticated `delete-account` and `activate-protocol` Edge Functions are deployed and active.
 - Onboarding drafts now use owner-scoped encrypted native caches, session-only web preview storage, automatic plain-cache migration, and revision-safe Supabase synchronization.
 - Verified accounts atomically reserve the username, submit the immutable intake, and activate a
   canonical 90-day plan. Generator v2 now runs from one portable source in both preview and the local
-  activation Edge runtime; hosted deployment remains pending.
+  activation Edge runtime and the hosted function.
 - Plan restoration and mission execution now read canonical server state.
 - Protocol activation refresh now resolves against the complete hydration identity instead of
   leaving the application route gate in a restoring state.
 - The release-facing product is named Mission — Kairo; Winter Arc remains the first 90-day
   protocol. Custom iOS, Android, monochrome, splash, and favicon assets replace Expo defaults.
+- The Expo project is linked to `@petrtradezs-team/mission-kairo`; its monorepo archive is complete,
+  and signed Android development build `68a28f83-06d7-43b4-98f7-64f12387195c` finished successfully.
+- RevenueCat source integration now includes a production hard gate, authenticated UUID identity,
+  localized monthly/annual offerings, purchase, restore, and manage-subscription actions. Store
+  products, RevenueCat keys, and sandbox purchases remain external.
+- Production-only Expo Observe performance/JavaScript error reporting and a render-recovery boundary
+  are implemented without account identifiers or private-answer attributes.
 
 ## Phase 2 — Security and RLS
 
@@ -54,7 +61,7 @@ Status: **IMPLEMENTED — NEEDS TESTING**
 Remaining verification:
 
 - Repeat the passing local User A/User B API isolation matrix against the hosted development project
-  after the pending migrations and Edge Function are approved and deployed.
+  with two real devices after SMTP is configured.
 - Configure authenticated SMTP and verify signup, resend, reset, expiry, rate limits, deletion, and
   second-device restoration on iOS and Android.
 - Keep minor activation disabled throughout the public beta.
@@ -78,7 +85,7 @@ Implemented and verified locally:
   canonical cache and never claim speculative completion.
 - Every plan is fixed to 90 real dates in its activation time zone. Missed dates expire without XP,
   reset the active streak, and cannot be reopened or bypassed by manual day jumps.
-- 123 passing mobile tests, 15 passing domain tests, strict type-checks, 193 passing database
+- 130 passing mobile tests, 15 passing domain tests, strict type-checks, 193 passing database
   assertions, passing confirmed-user Edge activation/replay and two-client API isolation tests, a
   populated six-migration upgrade test, generated-type equality, and clean local
   public/private-schema lint.
@@ -89,3 +96,7 @@ Remaining before this milestone is fully verified:
 - Preserve the 18+ beta boundary and keep minor activation out of the v1.0 interface.
 - Run the complete flow with two real hosted users and on two devices.
 - Add durable offline mission mutation queue/retry; current offline support is read-only cached state.
+- Complete Apple signing interactively and create the first installable iOS development build.
+- Publish lawyer-reviewed privacy, terms, and support pages with a verified operator contact.
+- Configure Apple/Google products and RevenueCat, then pass the purchase, restore, cancellation,
+  reinstall, second-device, grace-period, billing-issue, expiration, and refund matrix.

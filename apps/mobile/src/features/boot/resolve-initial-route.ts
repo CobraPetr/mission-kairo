@@ -33,7 +33,8 @@ export type InitialRoute =
   | '/(auth)/welcome'
   | '/(onboarding)'
   | '/(onboarding)/review'
-  | '/(onboarding)/plan-preview';
+  | '/(onboarding)/plan-preview'
+  | '/paywall';
 
 export type BootPhase =
   | 'configuration'
@@ -58,6 +59,8 @@ export type RouteRequest =
   | { group: 'auth'; screen: string }
   | { group: 'authCallback' }
   | { group: 'passwordReset' }
+  | { group: 'paywall' }
+  | { group: 'publicInfo' }
   | { group: 'onboarding'; section: OnboardingSection | 'index' | 'unknown' }
   | { group: 'demoReset' }
   | { group: 'unknown' };
@@ -147,9 +150,9 @@ export function resolveBoot(snapshot: BootSnapshot): BootResolution {
   if (snapshot.entitlement === 'unknown') return { kind: 'loading', phase: 'entitlement' };
   if (snapshot.entitlement === 'required') {
     return {
-      kind: 'error',
+      kind: 'route',
       phase: 'entitlement',
-      reason: 'Subscription access is required, but the paywall is not available in this build.',
+      route: '/paywall',
     };
   }
 
@@ -184,6 +187,8 @@ export function classifyRoute(segments: readonly string[]): RouteRequest {
   }
   if (first === 'auth' && second === 'callback') return { group: 'authCallback' };
   if (first === 'auth' && second === 'reset-password') return { group: 'passwordReset' };
+  if (first === 'paywall') return { group: 'paywall' };
+  if (first === 'legal' || first === 'support') return { group: 'publicInfo' };
   if (first === 'demo-reset') return { group: 'demoReset' };
   return { group: 'unknown' };
 }
@@ -226,6 +231,8 @@ export function resolveRouteAccess(
     if (resolution.kind === 'error') return { action: 'error', ...resolution };
     return { action: 'allow' };
   }
+
+  if (request.group === 'publicInfo') return { action: 'allow' };
 
   if (
     request.group === 'passwordReset' &&
@@ -285,6 +292,12 @@ export function resolveRouteAccess(
       return { action: 'redirect', route: resolution.route };
     }
     return canAccessOnboarding(request, snapshot, resolution)
+      ? { action: 'allow' }
+      : { action: 'redirect', route: resolution.route };
+  }
+
+  if (resolution.phase === 'entitlement') {
+    return request.group === 'paywall'
       ? { action: 'allow' }
       : { action: 'redirect', route: resolution.route };
   }

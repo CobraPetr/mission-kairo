@@ -35,23 +35,23 @@ Legend:
   native-Maestro verified on pull request #2; merge remains stacked behind Step 2.
 - [-] Step 4 — Consolidate the development authentication bypass. Implemented on pull request #3;
   merge remains stacked behind Step 3.
-- [-] Step 5 — Finish hosted Supabase email delivery and auth configuration. The email-only client
-  and server policy is locally verified and deployed; hosted SMTP, legal guardian design, and
-  real-device email journeys remain external blockers.
+- [-] Step 5 — Finish hosted Supabase email delivery and auth configuration. The email-only client,
+  database policy, 13 migrations, and both Edge Functions are deployed; hosted SMTP, dashboard
+  redirect verification, and real-device email journeys remain external blockers.
 - [-] Step 6 — Move portable rules and schemas into `packages/domain`. Generator v2, immutable
   seed/version metadata, server-only canonical activation, cross-runtime source policy, four-track
   golden fixtures, boundary/property tests, and the local Edge smoke test are implemented and
-  verified. Review, merge, and explicit authorization for the hosted migration/function deployment
-  remain.
+  verified and deployed to the hosted development project. Review and merge remain.
 - [-] Step 7 — Reconcile and harden the normalized database invariants. Shared bounds, 90-day and
   daily-schedule constraints, forward-only status transitions, canonical XP derivation, drift
   detection/repair, generated-type equality, six-migration upgrade preservation, and two-client API
-  isolation are locally verified. Review, merge, and hosted migration authorization remain.
+  isolation are locally verified, and the hosted migration history now matches all 13 local
+  migrations. Review and merge remain.
 - [-] Step 8 — Consolidate mission commands onto one idempotent, ledger-safe RPC path. The single
   UUID/timestamp/revision command contract, immutable replay receipts, canonical ledger award,
   retired legacy completion paths, mobile-issued command identities, and 193 database assertions
-  are locally verified. The real-API race harness passes repeatedly; pull-request review and hosted
-  deployment remain.
+  are locally verified and deployed. The real-API race harness passes repeatedly; pull-request
+  review and the rerun of the hardened CI gate remain.
 - [ ] Step 9 — Harden account-scoped repositories and cache validation.
 - [ ] Step 10 — Add a durable offline mission-command queue.
 - [ ] Step 11 — Complete remote synchronization and canonical conflict recovery.
@@ -62,17 +62,23 @@ Legend:
 - [ ] Step 14 — Automate the core journey with Maestro.
 - [ ] Step 15 — Pass the two-account by two-device verification matrix.
 - [ ] Step 16 — Expand and calibrate the mission library.
-- [-] Step 17 — Remove or hide unfinished launch features. Challenges, social chat, leaderboard,
-  public photos, and unrestricted AI have no launch navigation entry; remaining deep-link and flag
-  hardening is pending.
+- [x] Step 17 — Remove or hide unfinished launch features. Challenges redirect to Today even by
+  deep link; social chat, leaderboard, public photos, and unrestricted AI have no launch route; the
+  UI lab and demo reset fail closed outside development.
 - [ ] Step 18 — Configure App Store, Play, and RevenueCat products.
-- [ ] Step 19 — Implement paywall, entitlement, Restore, and Manage Subscription.
+- [-] Step 19 — Implement paywall, entitlement, Restore, and Manage Subscription. The native
+  RevenueCat provider, UUID identity, localized offering UI, hard route gate, restore, management,
+  cancellation handling, and production fail-closed configuration are implemented and tested in
+  source. Real store products, SDK keys, and sandbox device verification remain.
 - [ ] Step 20 — Pass the adversarial money-path test matrix.
-- [ ] Step 21 — Publish lawyer-reviewed legal and support pages.
+- [!] Step 21 — Publish lawyer-reviewed legal and support pages. In-app privacy, terms, and support
+  drafts exist and production builds now require public HTTPS URLs. Verified operator contact,
+  hosting, and legal review remain owner/external work.
 - [ ] Step 22 — Verify account deletion end to end for two complete accounts.
 - [-] Step 23 — Add privacy-safe crash reporting, analytics, icons, and splash. The custom Kairo
-  insignia, opaque iOS icon, adaptive Android foreground/monochrome assets, splash, and favicon are
-  implemented; crash reporting and analytics remain.
+  insignia, opaque iOS icon, adaptive Android assets, splash, favicon, production-only Expo Observe
+  JavaScript error reporting, render recovery boundary, and performance telemetry are implemented.
+  Native crash capture and dashboard verification remain.
 - [ ] Step 24 — Complete both store listings and privacy disclosures.
 - [ ] Step 25 — Build, test, upload, and submit the production artifacts.
 - [ ] Step 26 — Complete the internal beta and blocking-defect burn-down.
@@ -121,9 +127,10 @@ Legend:
   - [x] Preview profile.
   - [x] Production profile.
   - [x] Development client dependency.
-- [!] Create and verify an installable development build. Requires the owner's Expo account and platform signing credentials.
-  - [!] iOS build.
-  - [!] Android build.
+- [-] Create and verify installable development builds.
+  - [!] iOS build. Expo is linked, but Apple internal-distribution credentials and a registered test
+    device must be completed interactively by the owner.
+  - [x] Android build. Signed APK build `68a28f83-06d7-43b4-98f7-64f12387195c` finished on EAS.
   - [!] Real-device launch check.
 
 ## 2. Application shell and design system
@@ -168,8 +175,8 @@ Legend:
 - [x] Create `profiles_public`.
 - [x] Create `profiles_private`.
 - [x] Create automatic profile initialization.
-- [x] Apply and test Row Level Security. All seven hosted migrations are current, all 88 pgTAP
-      assertions pass locally, and the hosted `public` and `private` schemas pass strict lint.
+- [x] Apply and test Row Level Security. All 13 hosted migrations are current, all 193 pgTAP
+      assertions pass locally, and the `public` and `private` schemas pass strict lint.
 - [x] Implement authentication state provider.
 - [x] Implement sign up.
 - [x] Implement email-link verification, resend, and deep-link callback.
@@ -243,8 +250,8 @@ Legend:
 - [x] Verify deterministic output, byte-stable plan identity, all four base tracks, boundary inputs,
       schedule validity, workload properties, and safety rules.
 - [x] Exercise confirmed-user activation and idempotent replay through the local Edge runtime.
-- [!] Deploy generator v2 migration and `activate-protocol` Edge Function to the hosted development
-  project after owner authorization and pull-request review.
+- [x] Deploy generator v2 migrations and the `activate-protocol` Edge Function to the hosted
+      development project.
 - [x] Centralize age, measurement, duration, XP, step, daily-count, and workload bounds for client
       schemas and database constraints.
 - [x] Enforce exact 90-day calendars, valid daily schedules, timestamp order, and forward-only plan,
@@ -264,7 +271,7 @@ Legend:
 - [x] Allow Day 90 to be sealed once and hide the final action after completion.
 - [x] Build partial-day state.
 - [x] Build missed-day state with expired missions, streak reset, and a non-actionable Today view.
-- [ ] Build rest-day state.
+- [x] Build recovery-day state with distinct instructions and safe lower-intensity framing.
 - [x] Build offline-cached state.
 - [-] Build sync-conflict and server-error states. Canonical refresh and visible retry errors are implemented; native two-device UX verification remains.
 - [x] Build mission briefing.
@@ -340,19 +347,23 @@ Legend:
 - [ ] Build morning, mission, evening, weekly, and challenge reminders.
 - [ ] Implement safe lock-screen copy.
 - [ ] Implement notification deep links.
-- [ ] Configure RevenueCat development integration.
+- [-] Configure RevenueCat development integration. SDK integration is complete; dashboard project,
+  store connections, offerings, and public platform keys remain.
 - [ ] Configure products and entitlements.
-- [ ] Implement entitlement provider.
-- [ ] Build paywall.
-- [ ] Build Restore Purchases.
+- [x] Implement entitlement provider using the authenticated Supabase UUID and canonical
+  `mission_kairo_pro` entitlement.
+- [x] Build localized monthly/annual paywall with explicit renewal copy and three-day trial framing.
+- [x] Build Restore Purchases and Manage Subscription.
 - [ ] Handle trial, active, grace, billing issue, and expired states.
 - [ ] Add trusted purchase webhooks.
 - [ ] Verify reinstall, logout, expiry, and restoration.
 
 ## 10. Quality and release
 
-- [ ] Add privacy-safe analytics.
-- [ ] Add crash reporting with data scrubbing.
+- [x] Add production-only privacy-safe startup/performance telemetry without account identifiers or
+  private-answer attributes.
+- [-] Add crash reporting with data scrubbing. Expo Observe captures production JavaScript/render
+  errors without custom user attributes; native crashes and live-dashboard verification remain.
 - [ ] Add localization architecture.
 - [ ] Add English copy.
 - [ ] Add German layout-expansion testing.
@@ -361,13 +372,13 @@ Legend:
 - [ ] Complete reduced-motion audit.
 - [ ] Complete performance audit.
 - [ ] Complete offline audit.
-- [!] Complete RLS and private-storage tests. Database/RLS behavior has 170 passing assertions;
+- [!] Complete RLS and private-storage tests. Database/RLS behavior has 193 passing assertions;
   photo/private-object storage is not implemented yet.
 - [ ] Complete end-to-end test suite.
 - [ ] Test one real iPhone.
 - [ ] Test one real Android device.
 - [ ] Create internal iOS build.
-- [ ] Create internal Android build.
+- [x] Create internal Android build.
 - [ ] Run beta and resolve every blocking defect.
 - [ ] Prepare App Store metadata and privacy disclosures.
 - [ ] Prepare Play Store metadata and privacy disclosures.

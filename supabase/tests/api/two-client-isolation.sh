@@ -101,11 +101,25 @@ activate_client() {
       username: $username
     }'
   )"
-  curl -sS -X POST "$task_api_url/functions/v1/activate-protocol" \
-    -H "apikey: $task_anon_key" \
-    -H "Authorization: Bearer $task_token" \
-    -H 'Content-Type: application/json' \
-    --data "$task_payload"
+  local task_response=''
+  for _ in {1..5}; do
+    task_response="$(
+      curl -sS -X POST "$task_api_url/functions/v1/activate-protocol" \
+        -H "apikey: $task_anon_key" \
+        -H "Authorization: Bearer $task_token" \
+        -H 'Content-Type: application/json' \
+        --data "$task_payload"
+    )"
+    if jq -e '.planId and .planKey' <<<"$task_response" >/dev/null; then
+      break
+    fi
+    if ! jq -e '.message == "An invalid response was received from the upstream server"' \
+      <<<"$task_response" >/dev/null; then
+      break
+    fi
+    sleep 1
+  done
+  printf '%s' "$task_response"
 }
 
 task_email_a="gate7-a-${task_suffix}@example.test"

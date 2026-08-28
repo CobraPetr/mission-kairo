@@ -1,4 +1,4 @@
-# Winter Arc release credentials runbook
+# Mission Kairo release credentials runbook
 
 This runbook lists the account-owned work that cannot be completed safely in source control. Do not paste passwords, signing keys, service-account JSON, Apple `.p8` files, Supabase service-role keys, RevenueCat secret keys, or provider tokens into the repository or any `EXPO_PUBLIC_` variable.
 
@@ -20,22 +20,24 @@ Until the private remote and branch protection are configured, local validation 
 
 Owner action:
 
-1. Create or select the organization-owned Expo account.
-2. From `apps/mobile`, run `npx eas-cli@latest login`.
-3. Run `npx eas-cli@latest init` and select the correct Expo organization and project.
-4. Review the generated `owner` and `extra.eas.projectId` values in the Expo app configuration before committing them. Do not invent or copy identifiers from another app.
-5. In the EAS dashboard, create separate `development`, `preview`, and `production` environments.
-6. Add the correct environment-specific public values:
+1. Use the organization-owned Expo project `@petrtradezs-team/mission-kairo` (`3be7e7b7-4e4f-4d5a-b211-a212da7fde5e`).
+2. From `apps/mobile`, log in with the approved Expo owner account before changing builds or credentials.
+3. Keep `owner` and `extra.eas.projectId` in the Expo app configuration aligned with that project.
+4. Keep separate `development`, `preview`, and `production` EAS environments.
+5. Add the correct environment-specific public values:
    - `EXPO_PUBLIC_APP_ENV`
    - `EXPO_PUBLIC_SUPABASE_URL`
    - `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    - `EXPO_PUBLIC_REVENUECAT_IOS_KEY`
    - `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`
-7. Do not put Supabase service-role keys, RevenueCat secret API keys, SMTP credentials, SMS credentials, Apple keys, or Google service-account files in public variables.
-8. Run one signed development build per platform from `apps/mobile`:
+   - `EXPO_PUBLIC_PRIVACY_POLICY_URL`
+   - `EXPO_PUBLIC_TERMS_URL`
+   - `EXPO_PUBLIC_SUPPORT_URL`
+6. Do not put Supabase service-role keys, RevenueCat secret API keys, SMTP credentials, SMS credentials, Apple keys, or Google service-account files in public variables.
+7. Run one signed development build per platform from `apps/mobile`:
    - `npx eas-cli@latest build --profile development --platform ios`
    - `npx eas-cli@latest build --profile development --platform android`
-9. Install each result on a real device and complete the release test journeys before creating a production build.
+8. Install each result on a real device and complete the release test journeys before creating a production build.
 
 ## 2. Supabase
 
@@ -46,18 +48,18 @@ Owner action for each environment:
 3. Review every migration, then apply migrations with `supabase db push`.
 4. Run the database policy tests. Do not continue if any RLS or ownership test fails.
 5. Enable email confirmation and configure a production SMTP provider and verified sender domain.
-6. Enable phone authentication only after configuring the selected SMS provider in Supabase. Store the provider token in Supabase secrets, never in Expo.
-7. Add the native authentication callback and deployed web callbacks to the Supabase redirect allow-list.
+6. Keep phone authentication disabled for v1.0. Email is the only supported sign-in and recovery channel.
+7. Add `missionkairo://auth/callback` and deployed web callbacks to the Supabase redirect allow-list.
 8. Deploy `delete-account` and any later purchase-webhook functions.
 9. Add server-only function secrets with `supabase secrets set`; never commit their values.
-10. Verify signup, email confirmation, phone verification, password reset, session refresh, sign-out, two-user isolation, and complete account deletion against the hosted project.
+10. Verify signup, email confirmation, password reset, session refresh, sign-out, two-user isolation, and complete account deletion against the hosted project.
 
 ## 3. Apple Developer and App Store Connect
 
 Owner action:
 
 1. Enroll the owning legal person or organization in the Apple Developer Program and complete App Store Connect agreements, tax, and banking information.
-2. Confirm ownership and availability of bundle identifier `com.winterarc.app` before the first signed production build.
+2. Confirm ownership and availability of bundle identifier `com.missionkairo.app` before the first signed production build.
 3. Create the App Store Connect app record using that exact bundle identifier.
 4. Create the auto-renewable subscription group and products. Record product identifiers in the release configuration; fetch localized prices from StoreKit/RevenueCat at runtime.
 5. Create the App Store Connect API key used by RevenueCat or automated submission. Download the `.p8` file once and store it only in the approved secret manager/dashboard.
@@ -73,7 +75,7 @@ Owner action:
 Owner action:
 
 1. Enroll the owning legal person or organization in Play Console and complete identity, payments, tax, and merchant setup.
-2. Confirm ownership and availability of package name `com.winterarc.app` before the first production upload.
+2. Confirm ownership and availability of package name `com.missionkairo.app` before the first production upload.
 3. Create the Play Console app and complete the first required upload/setup interactively if Google has not yet enabled API-based submissions for the app.
 4. Create subscription products and base plans. Keep product identifiers aligned with RevenueCat.
 5. Create a least-privilege Google service account for RevenueCat/automated submission, grant only the required Play Console access, and store its JSON only in the provider secret store.
@@ -88,8 +90,8 @@ Owner action:
 1. Create the organization-owned RevenueCat project.
 2. Add the App Store and Google Play applications with their real bundle/package identifiers.
 3. Connect Apple and Google using the credentials stored directly in RevenueCat.
-4. Import the store products and create one entitlement, for example `winter_arc_pro`, only after the final name is approved.
-5. Create the current offering and attach monthly/annual packages selected by the owner.
+4. Import the store products and create the `mission_kairo_pro` entitlement.
+5. Create the current offering with a three-day introductory trial, a USD 29.99 monthly package, and a USD 99.99 annual package. Storefronts display their localized prices at runtime.
 6. Copy only the platform public SDK keys into their EAS environment values.
 7. Configure a RevenueCat webhook to the deployed Supabase purchase-webhook function.
 8. Store the webhook authorization/signing value only as a Supabase function secret.
@@ -104,7 +106,7 @@ The owner signs off only when all of the following are true:
 - The GitHub quality gate passes from the complete monorepo checkout.
 - EAS development and production builds succeed for iOS and Android.
 - Supabase migrations and RLS tests pass against the linked environment.
-- Email and SMS delivery work on real devices.
+- Email signup, confirmation, and recovery work on real devices.
 - RevenueCat entitlements survive reinstall and Restore Purchases.
 - Account deletion clears server records, private files, device data, tokens, and analytics identity while clearly explaining store-managed subscription billing.
 - Store privacy disclosures match the actual SDKs and data flows in the submitted binaries.

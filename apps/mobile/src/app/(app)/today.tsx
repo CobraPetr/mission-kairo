@@ -59,6 +59,7 @@ export default function TodayScreen() {
     );
   const dayMissed = execution.missedDayNumbers.includes(day.day);
   const daySealed = execution.sealedDayNumbers.includes(day.day);
+  const recoveryDay = day.kind === 'recovery';
 
   async function openMission(missionId: string) {
     const opened = await beginMission(missionId);
@@ -75,13 +76,15 @@ export default function TodayScreen() {
             ? 'This date passed without a sealed record. The streak resets, but the protocol continues.'
             : daySealed
               ? 'Today is sealed. The next protocol opens on its assigned calendar date.'
-              : allResolved
-                ? allComplete
-                  ? 'Daily orders complete. Recovery is now part of the mission.'
-                  : 'Daily orders resolved. Seal the record and continue without hiding the skips.'
-                : 'Execute the next order. Nothing else matters yet.'
+              : recoveryDay
+                ? 'Recovery is an assigned order, not an absence of discipline. Complete the lighter protocol and protect tomorrow.'
+                : allResolved
+                  ? allComplete
+                    ? 'Daily orders complete. Recovery is now part of the mission.'
+                    : 'Daily orders resolved. Seal the record and continue without hiding the skips.'
+                  : 'Execute the next order. Nothing else matters yet.'
         }
-        title="TODAY"
+        title={recoveryDay ? 'RECOVERY' : 'TODAY'}
       />
 
       <Stack gap="x6" style={styles.body}>
@@ -130,7 +133,9 @@ export default function TodayScreen() {
         <Stack gap="x3">
           <Inline justify="space-between">
             <MonoLabel>
-              Daily protocol // {String(missions.length).padStart(2, '0')} orders
+              {`${recoveryDay ? 'Recovery protocol' : 'Daily protocol'} // ${String(
+                missions.length,
+              ).padStart(2, '0')} orders`}
             </MonoLabel>
             <MonoLabel>{missions.reduce((sum, mission) => sum + mission.xp, 0)} XP</MonoLabel>
           </Inline>
@@ -196,7 +201,9 @@ export default function TodayScreen() {
 
         <SectionPanel label="System note">
           <AppText color="textMuted" variant="bodySmall">
-            A missed order changes the recovery path; it never erases previous evidence.
+            {recoveryDay
+              ? 'Lower intensity protects consistency. Do not replace recovery with extra punishment.'
+              : 'A missed order changes the recovery path; it never erases previous evidence.'}
           </AppText>
         </SectionPanel>
       </Stack>

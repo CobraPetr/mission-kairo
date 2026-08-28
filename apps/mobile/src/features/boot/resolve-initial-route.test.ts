@@ -65,7 +65,7 @@ describe('resolveInitialRoute', () => {
     expect(resolveInitialRoute(ready)).toBe('/(app)/today');
   });
 
-  it('fails closed for configuration, session, workspace, and unavailable entitlement errors', () => {
+  it('fails closed for configuration, session, and workspace errors', () => {
     expect(resolveBoot({ ...ready, configuration: 'error' }).kind).toBe('error');
     expect(resolveBoot({ ...ready, session: 'error' }).kind).toBe('error');
     expect(resolveBoot({ ...ready, workspaceSafety: 'error' })).toMatchObject({
@@ -73,9 +73,10 @@ describe('resolveInitialRoute', () => {
       phase: 'workspaceSafety',
     });
     expect(resolveBoot({ ...ready, appReadiness: 'error' }).kind).toBe('error');
-    expect(resolveBoot({ ...ready, entitlement: 'required' })).toMatchObject({
-      kind: 'error',
+    expect(resolveBoot({ ...ready, entitlement: 'required' })).toEqual({
+      kind: 'route',
       phase: 'entitlement',
+      route: '/paywall',
     });
   });
 });
@@ -87,6 +88,9 @@ describe('classifyRoute', () => {
     [['(auth)', 'sign-in'], { group: 'auth', screen: 'sign-in' }],
     [['auth', 'callback'], { group: 'authCallback' }],
     [['auth', 'reset-password'], { group: 'passwordReset' }],
+    [['paywall'], { group: 'paywall' }],
+    [['legal', 'privacy'], { group: 'publicInfo' }],
+    [['support'], { group: 'publicInfo' }],
     [['(onboarding)', 'career'], { group: 'onboarding', section: 'career' }],
     [['demo-reset'], { group: 'demoReset' }],
     [['private-unknown'], { group: 'unknown' }],
@@ -177,6 +181,12 @@ describe('resolveRouteAccess', () => {
     );
   });
 
+  it('keeps legal and support information public even while session state is loading', () => {
+    expect(resolveRouteAccess({ ...ready, session: 'loading' }, { group: 'publicInfo' })).toEqual({
+      action: 'allow',
+    });
+  });
+
   it('exposes demo reset only through the explicit development preview adapter', () => {
     expect(
       resolveRouteAccess({ ...ready, developmentPreview: true }, { group: 'demoReset' }),
@@ -197,6 +207,17 @@ describe('resolveRouteAccess', () => {
     expect(
       resolveRouteAccess({ ...previewGuest, activation: 'required' }, { group: 'app' }),
     ).toMatchObject({ action: 'redirect' });
+  });
+
+  it('allows only the paywall while subscription access is required', () => {
+    const subscriptionRequired = { ...ready, entitlement: 'required' as const };
+    expect(resolveRouteAccess(subscriptionRequired, { group: 'paywall' })).toEqual({
+      action: 'allow',
+    });
+    expect(resolveRouteAccess(subscriptionRequired, { group: 'app' })).toEqual({
+      action: 'redirect',
+      route: '/paywall',
+    });
   });
 
   it('holds instead of rendering stale content during an account switch', () => {

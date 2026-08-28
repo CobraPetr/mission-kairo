@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowLeft, LogOut, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, CreditCard, LogOut, RotateCcw, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 
@@ -8,6 +8,8 @@ import { useAuth } from '@/features/auth/auth-provider';
 import { useExecution } from '@/features/execution/execution-provider';
 import { useOnboarding } from '@/features/onboarding/onboarding-provider';
 import { usePlan } from '@/features/plan/plan-provider';
+import { openPublicDocument } from '@/features/legal/public-documents';
+import { useSubscription } from '@/features/subscription/subscription-provider';
 import { spacing } from '@/theme/tokens';
 import { AppText, Button, IconButton, Inline, MonoLabel, SafeScreen, Stack } from '@/ui/primitives';
 
@@ -16,6 +18,13 @@ export default function AccountScreen() {
   const { reset: resetExecution } = useExecution();
   const { resetDraft } = useOnboarding();
   const { reset: resetPlan } = usePlan();
+  const {
+    access: subscriptionAccess,
+    busy: subscriptionBusy,
+    error: subscriptionError,
+    manage,
+    restore,
+  } = useSubscription();
   const [error, setError] = useState<string>();
   const [loadingAction, setLoadingAction] = useState<'delete' | 'signout'>();
 
@@ -81,6 +90,54 @@ export default function AccountScreen() {
             {error}
           </AppText>
         ) : null}
+        <Stack gap="x3">
+          <MonoLabel>SUBSCRIPTION</MonoLabel>
+          <AppText color="textMuted" variant="bodySmall">
+            {subscriptionAccess === 'active'
+              ? 'Mission Kairo Pro is active.'
+              : subscriptionAccess === 'notEnforced'
+                ? 'Store access is disabled in this development build.'
+                : 'No active Mission Kairo Pro entitlement was found.'}
+          </AppText>
+          {subscriptionError ? (
+            <AppText accessibilityRole="alert" color="danger" variant="bodySmall">
+              {subscriptionError}
+            </AppText>
+          ) : null}
+          <Button
+            disabled={subscriptionAccess !== 'active' || subscriptionBusy}
+            icon={CreditCard}
+            label="Manage subscription"
+            onPress={() => void manage().catch(() => undefined)}
+            variant="secondary"
+          />
+          <Button
+            disabled={subscriptionAccess === 'notEnforced' || subscriptionBusy}
+            icon={RotateCcw}
+            label="Restore purchases"
+            loading={subscriptionBusy}
+            onPress={() => void restore().catch(() => undefined)}
+            variant="secondary"
+          />
+        </Stack>
+        <Stack gap="x3">
+          <MonoLabel>LEGAL & SUPPORT</MonoLabel>
+          <Button
+            label="Privacy policy"
+            onPress={() => void openPublicDocument('privacy')}
+            variant="ghost"
+          />
+          <Button
+            label="Terms of use"
+            onPress={() => void openPublicDocument('terms')}
+            variant="ghost"
+          />
+          <Button
+            label="Support"
+            onPress={() => void openPublicDocument('support')}
+            variant="ghost"
+          />
+        </Stack>
         <Stack gap="x3">
           <Button
             disabled={status !== 'authenticated'}
