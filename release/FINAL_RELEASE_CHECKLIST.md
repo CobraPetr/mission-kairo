@@ -36,8 +36,9 @@ Updated: 30 August 2026
       review contact, and review account.
 - [ ] Create the Play Console app and complete identity, payments, Data Safety, Health Apps,
       content rating, target audience, and account-deletion declarations.
-- [ ] Confirm whether the personal Google Play account was created after 13 November 2023; if yes,
-      complete Google's required closed-test period before public production access.
+- [ ] Enroll the personal Google Play developer account. Because it is being created after
+      13 November 2023, complete a closed test with at least 12 continuously opted-in testers for
+      14 days before applying for production access.
 
 ## Final hardware and money-path gate
 

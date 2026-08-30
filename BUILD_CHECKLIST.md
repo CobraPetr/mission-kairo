@@ -19,7 +19,9 @@ Legend:
 - [x] Annual subscription: USD 99.99.
 - [x] Introductory trial: three days, matching the store-supported minimum.
 - [x] No lifetime purchase in v1.0.
-- [!] Determine whether the personal Play account was created after 13 November 2023. If so, start the required 12-tester/14-day closed test and treat the public launch as iOS-first.
+- [!] Google Play Console currently opens at developer signup. A personal account created now must
+      complete Google's required 12-tester/14-day closed test before production access, so the
+      public launch must be iOS-first.
 
 ## Launch v1.0 gated execution
 
