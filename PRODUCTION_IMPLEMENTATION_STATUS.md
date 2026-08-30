@@ -1,6 +1,6 @@
 # Mission — Kairo production implementation status
 
-Updated: 27 August 2026
+Updated: 30 August 2026
 
 Status vocabulary: `NOT STARTED`, `IN PROGRESS`, `BLOCKED — USER ACTION REQUIRED`, `IMPLEMENTED — NEEDS TESTING`, `VERIFIED`.
 
@@ -42,6 +42,12 @@ Status: **VERIFIED**
   products, RevenueCat keys, and sandbox purchases remain external.
 - Production-only Expo Observe performance/JavaScript error reporting and a render-recovery boundary
   are implemented without account identifiers or private-answer attributes.
+- Failed mission commands persist in encrypted owner-scoped storage and replay with the same
+  idempotency identity after restart. Stale queued work resolves to canonical server state and never
+  grants speculative XP.
+- A private RevenueCat entitlement ledger, signed webhook handler, event receipt log, out-of-order
+  protection, and mission-command enforcement switch are implemented. Enforcement deliberately
+  remains disabled until real store webhooks pass sandbox verification.
 
 ## Phase 2 — Security and RLS
 
@@ -50,7 +56,8 @@ Status: **IMPLEMENTED — NEEDS TESTING**
 - RLS enabled on every implemented user-owned table.
 - Owner-only read policies and revoked direct canonical writes implemented.
 - Server-managed private-profile columns are no longer client-writable.
-- 193 ownership, activation, canonical XP, calendar, idempotency, revision-conflict, and integrity assertions
+- 211 ownership, activation, canonical XP, calendar, idempotency, entitlement, revision-conflict,
+  and integrity assertions
   pass against the isolated Supabase stack.
 - The v1 activation path is email-only. Phone collection, SMS verification, phone claims, and
   self-attested guardian approval have been removed from the active client path.
@@ -85,7 +92,7 @@ Implemented and verified locally:
   canonical cache and never claim speculative completion.
 - Every plan is fixed to 90 real dates in its activation time zone. Missed dates expire without XP,
   reset the active streak, and cannot be reopened or bypassed by manual day jumps.
-- 130 passing mobile tests, 15 passing domain tests, strict type-checks, 193 passing database
+- 132 passing mobile tests, 15 passing domain tests, strict type-checks, 211 passing database
   assertions, passing confirmed-user Edge activation/replay and two-client API isolation tests, a
   populated six-migration upgrade test, generated-type equality, and clean local
   public/private-schema lint.
@@ -95,8 +102,10 @@ Remaining before this milestone is fully verified:
 - Configure real SMTP with an authenticated sender domain and test real email journeys.
 - Preserve the 18+ beta boundary and keep minor activation out of the v1.0 interface.
 - Run the complete flow with two real hosted users and on two devices.
-- Add durable offline mission mutation queue/retry; current offline support is read-only cached state.
 - Complete Apple signing interactively and create the first installable iOS development build.
 - Publish lawyer-reviewed privacy, terms, and support pages with a verified operator contact.
 - Configure Apple/Google products and RevenueCat, then pass the purchase, restore, cancellation,
   reinstall, second-device, grace-period, billing-issue, expiration, and refund matrix.
+- Add the two RevenueCat webhook secrets in Supabase, deploy the verified webhook, connect its HTTPS
+  URL in RevenueCat, and enable the database enforcement switch only after sandbox lifecycle events
+  match the client entitlement.

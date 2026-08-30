@@ -655,6 +655,21 @@ export type Database = {
           execution_revision: number;
         }[];
       };
+      apply_revenuecat_entitlement_event: {
+        Args: {
+          p_entitlement_id: string;
+          p_environment: string;
+          p_event_at: string;
+          p_event_id: string;
+          p_event_type: string;
+          p_expires_at: string;
+          p_product_id: string;
+          p_status: string;
+          p_user_id: string;
+          p_will_renew: boolean;
+        };
+        Returns: boolean;
+      };
       execute_mission_command: {
         Args: {
           p_client_occurred_at: string;

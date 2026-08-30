@@ -9,7 +9,7 @@ Legend:
 - `[x]` Implemented, checked, and free of known blocking defects
 - `[!]` Blocked by an external account, credential, review, or decision
 
-## Launch v1.0 decisions — updated 27 August 2026
+## Launch v1.0 decisions — updated 30 August 2026
 
 - [x] Google Play developer account type: personal.
 - [x] Public beta activation age: 18+.
@@ -52,25 +52,37 @@ Legend:
   retired legacy completion paths, mobile-issued command identities, and 193 database assertions
   are locally verified and deployed. The real-API race harness passes repeatedly; pull-request
   review and the rerun of the hardened CI gate remain.
-- [ ] Step 9 — Harden account-scoped repositories and cache validation.
-- [ ] Step 10 — Add a durable offline mission-command queue.
-- [ ] Step 11 — Complete remote synchronization and canonical conflict recovery.
-- [ ] Step 12 — Finish username claiming and add localization architecture.
-- [-] Step 13 — Build missed-day, rest-day, and correct streak handling. Real calendar dates,
-  activation-time-zone anchoring, missed-day expiry, streak reset, and no-speed-running behavior are
-  verified; the dedicated recovery-day presentation remains.
+- [x] Step 9 — Harden account-scoped repositories and cache validation. Onboarding, plan, execution,
+      and pending-command data use validated owner-scoped keys; private native caches migrate into
+      device-bound encrypted storage.
+- [x] Step 10 — Add a durable offline mission-command queue. Failed authenticated commands retain
+      their original UUID, timestamp, revision, and target in encrypted owner-scoped storage; no local
+      XP or speculative completion is granted.
+- [x] Step 11 — Complete remote synchronization and canonical conflict recovery. Pending commands
+      replay with their original identity, lost responses resolve through the receipt, and stale queued
+      work is discarded in favor of canonical server state.
+- [-] Step 12 — Finish username claiming and add localization architecture. Atomic normalized
+  username claiming is verified; localization architecture remains.
+- [x] Step 13 — Build missed-day, rest-day, and correct streak handling. Real calendar dates,
+      activation-time-zone anchoring, missed-day expiry, streak reset, no-speed-running behavior, and a
+      dedicated lower-intensity recovery-day presentation are verified.
 - [ ] Step 14 — Automate the core journey with Maestro.
 - [ ] Step 15 — Pass the two-account by two-device verification matrix.
 - [ ] Step 16 — Expand and calibrate the mission library.
 - [x] Step 17 — Remove or hide unfinished launch features. Challenges redirect to Today even by
-  deep link; social chat, leaderboard, public photos, and unrestricted AI have no launch route; the
-  UI lab and demo reset fail closed outside development.
-- [ ] Step 18 — Configure App Store, Play, and RevenueCat products.
+      deep link; social chat, leaderboard, public photos, and unrestricted AI have no launch route; the
+      UI lab and demo reset fail closed outside development.
+- [-] Step 18 — Configure App Store, Play, and RevenueCat products. The private server entitlement
+  ledger, signed/idempotent webhook handler, out-of-order event protection, and fail-closed mission
+  enforcement switch are implemented and locally verified. Store records, RevenueCat project,
+  secrets, webhook deployment, and products remain external.
 - [-] Step 19 — Implement paywall, entitlement, Restore, and Manage Subscription. The native
   RevenueCat provider, UUID identity, localized offering UI, hard route gate, restore, management,
   cancellation handling, and production fail-closed configuration are implemented and tested in
   source. Real store products, SDK keys, and sandbox device verification remain.
-- [ ] Step 20 — Pass the adversarial money-path test matrix.
+- [ ] Step 20 — Pass the adversarial money-path test matrix. Local webhook authentication,
+      idempotency, lifecycle-state, stale-event, and enforcement tests pass; real sandbox store cases
+      remain.
 - [!] Step 21 — Publish lawyer-reviewed legal and support pages. In-app privacy, terms, and support
   drafts exist and production builds now require public HTTPS URLs. Verified operator contact,
   hosting, and legal review remain owner/external work.
@@ -122,6 +134,7 @@ Legend:
   - [x] Scheme and deep-link configuration.
   - [x] Version and build-number policy.
   - [x] Mission — Kairo product name, scheme, bundle identifiers, and package identifier.
+  - [x] Set the launch-facing application version to 1.0.0.
 - [x] Configure EAS.
   - [x] Development profile.
   - [x] Preview profile.
@@ -292,7 +305,8 @@ Legend:
 - [x] Use server-authoritative completion and canonical refresh instead of speculative local XP.
 - [x] Retry a lost command response once with the same identity, preserve the canonical cache during
       an outage, and surface failure without speculative completion.
-- [ ] Implement offline mutation queue and retry.
+- [x] Implement an encrypted, account-scoped offline mutation queue and retry with stable command
+      identity, restart recovery, duplicate prevention, and canonical stale-command recovery.
 - [x] Verify no mission or XP can complete twice through pgTAP replay, rapid-tap, stale-revision,
       cross-user-target, receipt-immutability, and ledger-total checks.
 - [x] Verify simultaneous live API commands locally. The automated same-key, different-key,
@@ -347,21 +361,25 @@ Legend:
 - [ ] Build morning, mission, evening, weekly, and challenge reminders.
 - [ ] Implement safe lock-screen copy.
 - [ ] Implement notification deep links.
-- [-] Configure RevenueCat development integration. SDK integration is complete; dashboard project,
-  store connections, offerings, and public platform keys remain.
+- [-] Configure RevenueCat development integration. SDK integration plus a private server
+  entitlement ledger and authenticated webhook handler are complete; dashboard project, store
+  connections, offerings, public platform keys, webhook secrets, and hosted deployment remain.
 - [ ] Configure products and entitlements.
 - [x] Implement entitlement provider using the authenticated Supabase UUID and canonical
-  `mission_kairo_pro` entitlement.
+      `mission_kairo_pro` entitlement.
 - [x] Build localized monthly/annual paywall with explicit renewal copy and three-day trial framing.
 - [x] Build Restore Purchases and Manage Subscription.
-- [ ] Handle trial, active, grace, billing issue, and expired states.
-- [ ] Add trusted purchase webhooks.
+- [-] Handle trial, active, grace, billing issue, and expired states. The server ledger maps and
+  tests these lifecycle states; live client/store verification remains.
+- [-] Add trusted purchase webhooks. HMAC plus authorization-header verification, idempotent event
+  receipts, alias/original-user resolution, timestamp replay protection, and out-of-order protection
+  are implemented and locally tested. RevenueCat configuration and production secrets remain.
 - [ ] Verify reinstall, logout, expiry, and restoration.
 
 ## 10. Quality and release
 
 - [x] Add production-only privacy-safe startup/performance telemetry without account identifiers or
-  private-answer attributes.
+      private-answer attributes.
 - [-] Add crash reporting with data scrubbing. Expo Observe captures production JavaScript/render
   errors without custom user attributes; native crashes and live-dashboard verification remain.
 - [ ] Add localization architecture.
@@ -371,7 +389,8 @@ Legend:
 - [ ] Complete accessibility audit.
 - [ ] Complete reduced-motion audit.
 - [ ] Complete performance audit.
-- [ ] Complete offline audit.
+- [-] Complete offline audit. Read-only cache fallback and durable command replay are implemented;
+  native airplane-mode and reconnect testing remains.
 - [!] Complete RLS and private-storage tests. Database/RLS behavior has 193 passing assertions;
   photo/private-object storage is not implemented yet.
 - [ ] Complete end-to-end test suite.

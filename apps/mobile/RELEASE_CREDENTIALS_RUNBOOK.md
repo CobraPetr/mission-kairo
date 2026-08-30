@@ -50,7 +50,9 @@ Owner action for each environment:
 5. Enable email confirmation and configure a production SMTP provider and verified sender domain.
 6. Keep phone authentication disabled for v1.0. Email is the only supported sign-in and recovery channel.
 7. Add `missionkairo://auth/callback` and deployed web callbacks to the Supabase redirect allow-list.
-8. Deploy `delete-account` and any later purchase-webhook functions.
+8. Deploy `delete-account`, `activate-protocol`, and `revenuecat-webhook`. The RevenueCat function
+   must use `--no-verify-jwt` because it authenticates RevenueCat's authorization header and HMAC
+   signature instead of a Supabase user token.
 9. Add server-only function secrets with `supabase secrets set`; never commit their values.
 10. Verify signup, email confirmation, password reset, session refresh, sign-out, two-user isolation, and complete account deletion against the hosted project.
 
@@ -93,10 +95,17 @@ Owner action:
 4. Import the store products and create the `mission_kairo_pro` entitlement.
 5. Create the current offering with a three-day introductory trial, a USD 29.99 monthly package, and a USD 99.99 annual package. Storefronts display their localized prices at runtime.
 6. Copy only the platform public SDK keys into their EAS environment values.
-7. Configure a RevenueCat webhook to the deployed Supabase purchase-webhook function.
-8. Store the webhook authorization/signing value only as a Supabase function secret.
+7. Add `REVENUECAT_WEBHOOK_AUTHORIZATION` and `REVENUECAT_WEBHOOK_SIGNING_SECRET` as server-only
+   Supabase function secrets. Require both checks; never use either value in the mobile app.
+8. Deploy `revenuecat-webhook`, then configure RevenueCat to send sandbox events to
+   `https://<project-ref>.supabase.co/functions/v1/revenuecat-webhook` using the same authorization
+   header and HMAC signing secret.
 9. Use the authenticated Supabase user UUID as RevenueCat `appUserID`; never use email, phone number, or a constant.
-10. Verify purchase, restore, reinstall, second device, logout/login, cancellation, grace, billing issue, expiration, refund, and account deletion behavior in both store sandboxes.
+10. Verify purchase, restore, reinstall, second device, logout/login, cancellation, grace, billing
+    issue, expiration, refund, and account deletion behavior in both store sandboxes.
+11. Confirm client access and `private.subscription_entitlements` agree for every case. Only then set
+    `private.release_settings.subscription_enforcement_enabled` to `true`; never enable the switch
+    before the sandbox webhook matrix is green.
 
 ## 6. Final release gate
 

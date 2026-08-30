@@ -101,13 +101,24 @@ task_activation_payload="$(
     username: $username
   }'
 )"
-task_activation="$(
-  curl -sS -X POST "$task_api_url/functions/v1/activate-protocol" \
-    -H "apikey: $task_anon_key" \
-    -H "Authorization: Bearer $task_access_token" \
-    -H 'Content-Type: application/json' \
-    --data "$task_activation_payload"
-)"
+task_activation=''
+for _ in {1..5}; do
+  task_activation="$(
+    curl -sS -X POST "$task_api_url/functions/v1/activate-protocol" \
+      -H "apikey: $task_anon_key" \
+      -H "Authorization: Bearer $task_access_token" \
+      -H 'Content-Type: application/json' \
+      --data "$task_activation_payload"
+  )"
+  if jq -e '.planId and .planKey' <<<"$task_activation" >/dev/null; then
+    break
+  fi
+  if ! jq -e '.message == "An invalid response was received from the upstream server"' \
+    <<<"$task_activation" >/dev/null; then
+    break
+  fi
+  sleep 1
+done
 task_plan_id="$(jq -r '.planId // empty' <<<"$task_activation")"
 if [[ -z "$task_plan_id" ]]; then
   cat "$task_log_file" >&2

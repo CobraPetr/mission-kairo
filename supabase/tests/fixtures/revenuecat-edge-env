@@ -1,0 +1,2 @@
+REVENUECAT_WEBHOOK_AUTHORIZATION=Bearer local-revenuecat-test
+REVENUECAT_WEBHOOK_SIGNING_SECRET=local-revenuecat-signing-secret

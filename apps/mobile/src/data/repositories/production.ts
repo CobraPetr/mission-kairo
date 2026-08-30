@@ -1,5 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import { securePrivateStorage } from '@/data/storage/secure-private-storage';
 
 import { buildScopedCacheKey } from './cache-scope';
@@ -21,12 +19,13 @@ export const planRepository = createPlanRepository({
   cacheKey: (ownerId) => buildScopedCacheKey(ownerId, 'plan', 2),
   cloud: supabasePlanGateway,
   legacyGuestKey: 'winterarc.plan.v1',
-  storage: AsyncStorage,
+  storage: securePrivateStorage,
 });
 
 export const executionRepository = createExecutionRepository({
   cacheKey: (ownerId) => buildScopedCacheKey(ownerId, 'execution', 2),
   cloud: supabaseExecutionGateway,
   legacyGuestKey: 'winterarc.execution.v1',
-  storage: AsyncStorage,
+  queueKey: (ownerId) => `${buildScopedCacheKey(ownerId, 'execution', 2)}:commands:v1`,
+  storage: securePrivateStorage,
 });

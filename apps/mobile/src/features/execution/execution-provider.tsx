@@ -11,7 +11,11 @@ import {
   useState,
 } from 'react';
 
-import { GUEST_WORKSPACE_ID, type ExecutionRepository } from '@/data/repositories';
+import {
+  ExecutionCommandQueuedError,
+  GUEST_WORKSPACE_ID,
+  type ExecutionRepository,
+} from '@/data/repositories';
 import { executionRepository } from '@/data/repositories/production';
 import { useAuth } from '@/features/auth/auth-provider';
 import { canUseGuestWorkspace } from '@/features/boot/development-preview-adapter';
@@ -163,8 +167,12 @@ export function ExecutionProvider({
       setError(undefined);
       try {
         return await operation();
-      } catch {
-        setError('Secure mission sync failed. Check the connection and try again.');
+      } catch (cause) {
+        setError(
+          cause instanceof ExecutionCommandQueuedError
+            ? cause.message
+            : 'Secure mission sync failed. Check the connection and try again.',
+        );
         return fallback;
       } finally {
         commandInFlightRef.current = false;

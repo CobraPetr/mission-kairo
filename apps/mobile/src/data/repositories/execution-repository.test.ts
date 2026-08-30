@@ -5,6 +5,7 @@ import { buildScopedCacheKey, GUEST_WORKSPACE_ID } from './cache-scope';
 import {
   createExecutionRepository,
   type ExecutionCloudGateway,
+  ExecutionCommandQueuedError,
   ExecutionRevisionConflictError,
   ExecutionTransportError,
 } from './execution-repository';
@@ -173,26 +174,93 @@ describe('createExecutionRepository', () => {
     expect(cloud.current.get('user-a')?.revision).toBe(2);
   });
 
-  it('retries a transport failure once and preserves the last canonical cache', async () => {
+  it('persists a failed transport command and replays the same identity after restart', async () => {
     const cached = { revision: 1, value: createEmptyExecutionState() };
     cloud.current.set('user-a', cached);
     await repository.load('user-a');
     cloud.failTransport = true;
 
+    const request = {
+      clientOccurredAt: '2026-08-27T10:00:00.000Z',
+      command: 'begin' as const,
+      expectedRevision: 1,
+      idempotencyKey: '10000000-0000-4000-8000-000000000004',
+      targetId: 'wa.day.mission',
+    };
+
+    await expect(repository.execute('user-a', request)).rejects.toBeInstanceOf(
+      ExecutionCommandQueuedError,
+    );
+
+    expect(cloud.calls).toBe(2);
+    cloud.failTransport = false;
+    const restarted = createExecutionRepository({
+      cacheKey: (ownerId) => buildScopedCacheKey(ownerId, 'execution', 2),
+      cloud,
+      legacyGuestKey: 'legacy-execution',
+      storage,
+    });
+
+    expect(await restarted.load('user-a')).toMatchObject({
+      revision: 2,
+      value: { currentMissionId: 'wa.day.mission', missionStatus: 'active' },
+    });
+    expect(cloud.calls).toBe(3);
+    expect(cloud.receipts.size).toBe(1);
+    expect(
+      storage.values.has(`${buildScopedCacheKey('user-a', 'execution', 2)}:pending-commands:v1`),
+    ).toBe(false);
+  });
+
+  it('does not stack a second action behind an unsynced command', async () => {
+    cloud.current.set('user-a', { revision: 1, value: createEmptyExecutionState() });
+    cloud.failTransport = true;
+    const first = {
+      clientOccurredAt: '2026-08-27T10:00:00.000Z',
+      command: 'begin' as const,
+      expectedRevision: 1,
+      idempotencyKey: '10000000-0000-4000-8000-000000000005',
+      targetId: 'wa.day.mission',
+    };
+
+    await expect(repository.execute('user-a', first)).rejects.toBeInstanceOf(
+      ExecutionCommandQueuedError,
+    );
+    await expect(
+      repository.execute('user-a', {
+        ...first,
+        command: 'skip',
+        idempotencyKey: '10000000-0000-4000-8000-000000000006',
+      }),
+    ).rejects.toBeInstanceOf(ExecutionCommandQueuedError);
+
+    const queued = JSON.parse(
+      storage.values.get(`${buildScopedCacheKey('user-a', 'execution', 2)}:pending-commands:v1`) ??
+        '{}',
+    ) as { commands?: unknown[] };
+    expect(queued.commands).toHaveLength(1);
+  });
+
+  it('drops a stale queued command and restores canonical server state', async () => {
+    cloud.current.set('user-a', { revision: 1, value: createEmptyExecutionState() });
+    cloud.failTransport = true;
     await expect(
       repository.execute('user-a', {
         clientOccurredAt: '2026-08-27T10:00:00.000Z',
         command: 'begin',
         expectedRevision: 1,
-        idempotencyKey: '10000000-0000-4000-8000-000000000004',
+        idempotencyKey: '10000000-0000-4000-8000-000000000007',
         targetId: 'wa.day.mission',
       }),
-    ).rejects.toBeInstanceOf(ExecutionTransportError);
+    ).rejects.toBeInstanceOf(ExecutionCommandQueuedError);
 
-    expect(cloud.calls).toBe(2);
     cloud.failTransport = false;
-    cloud.fail = true;
-    expect(await repository.load('user-a')).toEqual(cached);
+    cloud.current.set('user-a', { revision: 2, value: createEmptyExecutionState() });
+
+    expect((await repository.load('user-a'))?.revision).toBe(2);
+    expect(
+      storage.values.has(`${buildScopedCacheKey('user-a', 'execution', 2)}:pending-commands:v1`),
+    ).toBe(false);
   });
 
   it('clears preview execution when an account takes ownership', async () => {

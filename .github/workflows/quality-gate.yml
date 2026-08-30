@@ -110,6 +110,9 @@ jobs:
       - name: Exercise canonical activation Edge Function
         run: bash supabase/tests/edge/activate-protocol.sh
 
+      - name: Exercise authenticated RevenueCat webhook
+        run: bash supabase/tests/edge/revenuecat-webhook.sh
+
       - name: Exercise two authenticated API clients
         run: bash supabase/tests/api/two-client-isolation.sh
 
