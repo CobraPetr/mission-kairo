@@ -4,7 +4,7 @@ import { extractAuthCallbackParameters, isTrustedAuthCallbackUrl } from './auth-
 
 describe('extractAuthCallbackParameters', () => {
   it('extracts a PKCE authorization code', () => {
-    expect(extractAuthCallbackParameters('winterarc://auth/callback?code=secure-code')).toEqual({
+    expect(extractAuthCallbackParameters('missionkairo://auth/callback?code=secure-code')).toEqual({
       accessToken: undefined,
       code: 'secure-code',
       refreshToken: undefined,
@@ -14,7 +14,7 @@ describe('extractAuthCallbackParameters', () => {
   it('supports token fragments without logging or retaining the source URL', () => {
     expect(
       extractAuthCallbackParameters(
-        'winterarc://auth/callback#access_token=access&refresh_token=refresh',
+        'missionkairo://auth/callback#access_token=access&refresh_token=refresh',
       ),
     ).toEqual({
       accessToken: 'access',
@@ -24,16 +24,21 @@ describe('extractAuthCallbackParameters', () => {
   });
 
   it('accepts only exact configured callback destinations', () => {
-    const allowed = ['winterarc://auth/callback', 'https://winterarc.example/auth/reset-password'];
+    const allowed = [
+      'missionkairo://auth/callback',
+      'https://missionkairo.example/auth/reset-password',
+    ];
 
-    expect(isTrustedAuthCallbackUrl('winterarc://auth/callback?code=secure', allowed)).toBe(true);
+    expect(isTrustedAuthCallbackUrl('missionkairo://auth/callback?code=secure', allowed)).toBe(
+      true,
+    );
     expect(
       isTrustedAuthCallbackUrl(
-        'https://winterarc.example/auth/reset-password#access_token=a&refresh_token=b',
+        'https://missionkairo.example/auth/reset-password#access_token=a&refresh_token=b',
         allowed,
       ),
     ).toBe(true);
-    expect(isTrustedAuthCallbackUrl('winterarc://anything?code=secure', allowed)).toBe(false);
+    expect(isTrustedAuthCallbackUrl('missionkairo://anything?code=secure', allowed)).toBe(false);
     expect(
       isTrustedAuthCallbackUrl('https://evil.example/auth/callback?code=secure', allowed),
     ).toBe(false);

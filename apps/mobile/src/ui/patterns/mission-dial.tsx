@@ -81,7 +81,7 @@ export function MissionDial() {
   return (
     <View
       accessible
-      accessibilityLabel="Winter Arc global command interface: awaiting mission initialization"
+      accessibilityLabel="Mission Kairo command interface: awaiting Winter Arc initialization"
       style={styles.root}
     >
       <Inline justify="space-between" style={styles.header}>

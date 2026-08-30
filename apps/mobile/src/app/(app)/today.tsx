@@ -3,6 +3,7 @@ import { Check, LockKeyhole, Play, RotateCcw } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useExecution } from '@/features/execution/execution-provider';
+import { canSealExecutionDay } from '@/features/execution/execution-state';
 import { usePlan } from '@/features/plan/plan-provider';
 import { colors, radii, spacing } from '@/theme/tokens';
 import {
@@ -56,6 +57,9 @@ export default function TodayScreen() {
         execution.completedMissionIds.includes(mission.scheduledId) ||
         execution.skippedMissionIds.includes(mission.scheduledId),
     );
+  const dayMissed = execution.missedDayNumbers.includes(day.day);
+  const daySealed = execution.sealedDayNumbers.includes(day.day);
+  const recoveryDay = day.kind === 'recovery';
 
   async function openMission(missionId: string) {
     const opened = await beginMission(missionId);
@@ -68,13 +72,19 @@ export default function TodayScreen() {
         code={`DAY ${String(execution.activeDay).padStart(2, '0')}`}
         eyebrow="Command center"
         subtitle={
-          allResolved
-            ? allComplete
-              ? 'Daily orders complete. Recovery is now part of the mission.'
-              : 'Daily orders resolved. Seal the record and continue without hiding the skips.'
-            : 'Execute the next order. Nothing else matters yet.'
+          dayMissed
+            ? 'This date passed without a sealed record. The streak resets, but the protocol continues.'
+            : daySealed
+              ? 'Today is sealed. The next protocol opens on its assigned calendar date.'
+              : recoveryDay
+                ? 'Recovery is an assigned order, not an absence of discipline. Complete the lighter protocol and protect tomorrow.'
+                : allResolved
+                  ? allComplete
+                    ? 'Daily orders complete. Recovery is now part of the mission.'
+                    : 'Daily orders resolved. Seal the record and continue without hiding the skips.'
+                  : 'Execute the next order. Nothing else matters yet.'
         }
-        title="TODAY"
+        title={recoveryDay ? 'RECOVERY' : 'TODAY'}
       />
 
       <Stack gap="x6" style={styles.body}>
@@ -86,12 +96,26 @@ export default function TodayScreen() {
         <SectionPanel label="Mission status" raised>
           <Inline align="flex-end" justify="space-between">
             <Stack gap="x1">
-              <MonoLabel color="accent">{allComplete ? 'Complete' : 'In progress'}</MonoLabel>
+              <MonoLabel color="accent">
+                {dayMissed
+                  ? 'Missed'
+                  : daySealed
+                    ? 'Sealed'
+                    : allComplete
+                      ? 'Complete'
+                      : 'In progress'}
+              </MonoLabel>
               <AppText variant="title">{Math.round(progress * 100)}%</AppText>
             </Stack>
             <StatusBadge
               label={
-                allComplete ? 'Orders complete' : `${completedCount} / ${missions.length} complete`
+                dayMissed
+                  ? 'Date passed'
+                  : daySealed
+                    ? 'Record sealed'
+                    : allComplete
+                      ? 'Orders complete'
+                      : `${completedCount} / ${missions.length} complete`
               }
               tone={allComplete ? 'success' : 'active'}
             />
@@ -109,7 +133,9 @@ export default function TodayScreen() {
         <Stack gap="x3">
           <Inline justify="space-between">
             <MonoLabel>
-              Daily protocol // {String(missions.length).padStart(2, '0')} orders
+              {`${recoveryDay ? 'Recovery protocol' : 'Daily protocol'} // ${String(
+                missions.length,
+              ).padStart(2, '0')} orders`}
             </MonoLabel>
             <MonoLabel>{missions.reduce((sum, mission) => sum + mission.xp, 0)} XP</MonoLabel>
           </Inline>
@@ -122,7 +148,7 @@ export default function TodayScreen() {
               <Pressable
                 key={mission.scheduledId}
                 accessibilityRole="button"
-                disabled={!ready && !active}
+                disabled={dayMissed || daySealed || (!ready && !active)}
                 onPress={() => void openMission(mission.scheduledId)}
                 style={({ pressed }) => [
                   styles.missionRow,
@@ -164,7 +190,7 @@ export default function TodayScreen() {
               label={execution.missionStatus === 'paused' ? 'Resume mission' : 'Open next order'}
               onPress={() => void openMission(currentMission.scheduledId)}
             />
-          ) : allResolved && execution.activeDay < 90 ? (
+          ) : canSealExecutionDay(execution, day) ? (
             <Button
               label={`Seal day ${String(execution.activeDay).padStart(2, '0')}`}
               loading={busy}
@@ -175,7 +201,9 @@ export default function TodayScreen() {
 
         <SectionPanel label="System note">
           <AppText color="textMuted" variant="bodySmall">
-            A missed order changes the recovery path; it never erases previous evidence.
+            {recoveryDay
+              ? 'Lower intensity protects consistency. Do not replace recovery with extra punishment.'
+              : 'A missed order changes the recovery path; it never erases previous evidence.'}
           </AppText>
         </SectionPanel>
       </Stack>

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ChevronRight, LockKeyhole, Settings2 } from 'lucide-react-native';
+import { Settings2 } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { useExecution } from '@/features/execution/execution-provider';
@@ -15,8 +15,7 @@ import {
   StatusBadge,
 } from '@/ui/primitives';
 import { ProtocolHeader } from '@/ui/patterns/protocol-header';
-
-const profileRows = ['Identity & goals', 'Units & measurements', 'Notifications', 'Privacy & data'];
+import { SectionPanel } from '@/ui/patterns/section-panel';
 
 export default function ProfileScreen() {
   const { draft } = useOnboarding();
@@ -28,7 +27,7 @@ export default function ProfileScreen() {
       .slice(0, 2)
       .map((part) => part[0])
       .join('')
-      .toUpperCase() || 'WA';
+      .toUpperCase() || 'MK';
   return (
     <SafeScreen scroll>
       <ProtocolHeader
@@ -62,25 +61,34 @@ export default function ProfileScreen() {
           <StatusBadge label="Private file" tone="active" />
         </View>
 
-        <Stack gap="x1">
-          {profileRows.map((row) => (
-            <View key={row} style={styles.row}>
-              <AppText variant="bodySmall">{row}</AppText>
-              <ChevronRight color={colors.textDim} size={18} />
-            </View>
-          ))}
-        </Stack>
-
-        <View style={styles.lockedModule}>
-          <LockKeyhole color={colors.textDim} size={19} />
-          <Stack gap="x1" style={styles.lockedCopy}>
-            <MonoLabel>Social systems // offline</MonoLabel>
-            <AppText color="textMuted" variant="bodySmall">
-              Leaderboard and worldwide chat remain disabled until their safety systems are
-              complete.
-            </AppText>
+        <SectionPanel label="PROTOCOL IDENTITY">
+          <Stack gap="x3">
+            <Inline justify="space-between">
+              <AppText color="textMuted" variant="bodySmall">
+                Age
+              </AppText>
+              <MonoLabel>{draft.identity.age ?? '—'}</MonoLabel>
+            </Inline>
+            <Inline justify="space-between">
+              <AppText color="textMuted" variant="bodySmall">
+                Units
+              </AppText>
+              <MonoLabel>{draft.identity.unitSystem}</MonoLabel>
+            </Inline>
+            <Inline justify="space-between">
+              <AppText color="textMuted" variant="bodySmall">
+                Current build
+              </AppText>
+              <MonoLabel>{draft.physical.currentBuild ?? '—'}</MonoLabel>
+            </Inline>
           </Stack>
-        </View>
+        </SectionPanel>
+
+        <SectionPanel label="PRIMARY OBJECTIVE">
+          <AppText color={draft.goals.mainGoal ? 'text' : 'textMuted'} variant="bodySmall">
+            {draft.goals.mainGoal || 'No objective recorded.'}
+          </AppText>
+        </SectionPanel>
       </Stack>
     </SafeScreen>
   );
@@ -108,24 +116,5 @@ const styles = StyleSheet.create({
   },
   identityCopy: {
     paddingVertical: spacing.x5,
-  },
-  row: {
-    minHeight: 54,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  lockedModule: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.x3,
-    paddingTop: spacing.x5,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  lockedCopy: {
-    flex: 1,
   },
 });

@@ -1,18 +1,48 @@
 import { requireSupabase } from '@/data/supabase/client';
 import { type ExecutionState, executionStateSchema } from '@/features/execution/execution-state';
 
-import { type ExecutionCloudGateway, ExecutionRevisionConflictError } from './execution-repository';
+import {
+  type ExecutionCloudGateway,
+  ExecutionRevisionConflictError,
+  ExecutionTransportError,
+} from './execution-repository';
+
+type SupabaseGatewayError = { code?: string; message: string };
+
+function throwGatewayError(error: SupabaseGatewayError): never {
+  if (error.code === 'PT409' || error.code === '40001') {
+    throw new ExecutionRevisionConflictError();
+  }
+  if (!error.code || error.code.startsWith('PGRST0')) {
+    throw new ExecutionTransportError(error.message);
+  }
+  throw error;
+}
+
+async function resolveRequest<Result>(request: PromiseLike<Result>): Promise<Result> {
+  try {
+    return await request;
+  } catch (cause) {
+    if (cause instanceof TypeError) {
+      throw new ExecutionTransportError(cause.message);
+    }
+    throw cause;
+  }
+}
 
 export const supabaseExecutionGateway: ExecutionCloudGateway = {
-  async execute(userId, command, scheduledKey, expectedRevision) {
-    const { data, error } = await requireSupabase().rpc('execute_mission_command', {
-      p_command: command,
-      p_expected_revision: expectedRevision,
-      p_scheduled_key: scheduledKey ?? '',
-    });
+  async execute(userId, request) {
+    const { data, error } = await resolveRequest(
+      requireSupabase().rpc('execute_mission_command', {
+        p_client_occurred_at: request.clientOccurredAt,
+        p_command: request.command,
+        p_expected_revision: request.expectedRevision,
+        p_idempotency_key: request.idempotencyKey,
+        p_target_id: request.targetId ?? '',
+      }),
+    );
 
-    if (error?.code === '40001') throw new ExecutionRevisionConflictError();
-    if (error) throw error;
+    if (error) throwGatewayError(error);
     const commandResponse = data?.[0];
     if (!commandResponse) throw new Error('The mission command was not accepted.');
 
@@ -38,36 +68,44 @@ export const supabaseExecutionGateway: ExecutionCloudGateway = {
 
   async load(userId) {
     const client = requireSupabase();
-    const { data: plan, error: planError } = await client
-      .from('plans')
-      .select('id, user_id')
-      .eq('user_id', userId)
-      .in('status', ['active', 'completed'])
-      .order('activated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const { error: calendarError } = await resolveRequest(client.rpc('sync_execution_calendar'));
+    if (calendarError) throwGatewayError(calendarError);
+    const { data: plan, error: planError } = await resolveRequest(
+      client
+        .from('plans')
+        .select('id, user_id')
+        .eq('user_id', userId)
+        .in('status', ['active', 'completed'])
+        .order('activated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    );
 
-    if (planError) throw planError;
+    if (planError) throwGatewayError(planError);
     if (!plan) return null;
     if (plan.user_id !== userId) throw new Error('Received an execution for another user.');
 
     const [executionResult, missionsResult, progressResult, daysResult, profileResult] =
       await Promise.all([
-        client.from('arc_executions').select('*').eq('plan_id', plan.id).single(),
-        client.from('plan_missions').select('id, scheduled_key, user_id').eq('plan_id', plan.id),
-        client.from('mission_progress').select('*').eq('plan_id', plan.id),
-        client
-          .from('day_progress')
-          .select('status, user_id, plan_days!inner(day_number)')
-          .eq('plan_id', plan.id),
-        client.from('profiles_public').select('total_xp').eq('id', userId).single(),
+        resolveRequest(client.from('arc_executions').select('*').eq('plan_id', plan.id).single()),
+        resolveRequest(
+          client.from('plan_missions').select('id, scheduled_key, user_id').eq('plan_id', plan.id),
+        ),
+        resolveRequest(client.from('mission_progress').select('*').eq('plan_id', plan.id)),
+        resolveRequest(
+          client
+            .from('day_progress')
+            .select('status, user_id, plan_days!inner(day_number)')
+            .eq('plan_id', plan.id),
+        ),
+        resolveRequest(client.from('profiles_public').select('total_xp').eq('id', userId).single()),
       ]);
 
-    if (executionResult.error) throw executionResult.error;
-    if (missionsResult.error) throw missionsResult.error;
-    if (progressResult.error) throw progressResult.error;
-    if (daysResult.error) throw daysResult.error;
-    if (profileResult.error) throw profileResult.error;
+    if (executionResult.error) throwGatewayError(executionResult.error);
+    if (missionsResult.error) throwGatewayError(missionsResult.error);
+    if (progressResult.error) throwGatewayError(progressResult.error);
+    if (daysResult.error) throwGatewayError(daysResult.error);
+    if (profileResult.error) throwGatewayError(profileResult.error);
 
     const execution = executionResult.data;
     const missionKeyById = new Map(
@@ -93,6 +131,9 @@ export const supabaseExecutionGateway: ExecutionCloudGateway = {
         : null,
       currentStepIndex: execution.current_step_index,
       events: [],
+      missedDayNumbers: daysResult.data
+        .filter((day) => day.status === 'missed')
+        .map((day) => day.plan_days.day_number),
       missionStatus: execution.mission_status as ExecutionState['missionStatus'],
       sealedDayNumbers: daysResult.data
         .filter((day) => day.status === 'sealed')

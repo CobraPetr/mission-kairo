@@ -189,8 +189,9 @@ export function createOnboardingRepository({
         const synced = await writeCloud(ownerId, local.value, remote?.revision ?? 0);
         await writeLocal(ownerId, { ...synced, pendingSync: false });
         return synced;
-      } catch {
-        return local ? toRevisioned(local) : null;
+      } catch (error) {
+        if (local) return toRevisioned(local);
+        throw error;
       }
     },
 

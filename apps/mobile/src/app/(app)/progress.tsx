@@ -28,7 +28,10 @@ export default function ProgressScreen() {
   const sealedThisWeek = execution.sealedDayNumbers.filter(
     (day) => day >= currentWeekStart && day < currentWeekStart + 7,
   ).length;
-  const currentStreak = calculateSealedDayStreak(execution.sealedDayNumbers);
+  const currentStreak = calculateSealedDayStreak(
+    execution.sealedDayNumbers,
+    execution.missedDayNumbers,
+  );
   return (
     <SafeScreen scroll>
       <ProtocolHeader
@@ -40,7 +43,7 @@ export default function ProgressScreen() {
       <Stack gap="x6" style={styles.body}>
         <Inline justify="space-between">
           <StatusBadge label="Baseline" tone="active" />
-          <MonoLabel>Saved // local</MonoLabel>
+          <MonoLabel>Personal record</MonoLabel>
         </Inline>
 
         <SectionPanel label="Weekly consistency" raised>
@@ -77,8 +80,8 @@ export default function ProgressScreen() {
         <SectionPanel label="Weekly evidence">
           <AppText color="textMuted" variant="bodySmall">
             {completedDays >= 7
-              ? 'Weekly review unlocked. Private photos and measurements will be added in the next build phase.'
-              : `Complete ${7 - completedDays} more full ${7 - completedDays === 1 ? 'day' : 'days'} to unlock the first weekly review.`}
+              ? 'Full week secured. This record is now part of your 90-day evidence.'
+              : `Complete ${7 - completedDays} more full ${7 - completedDays === 1 ? 'day' : 'days'} to secure this week.`}
           </AppText>
         </SectionPanel>
       </Stack>

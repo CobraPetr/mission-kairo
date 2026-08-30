@@ -50,14 +50,14 @@ export default function WelcomeScreen() {
       <Stack style={styles.page}>
         <CinematicReveal delay={60} distance={-7} duration={420}>
           <Inline justify="space-between">
-            <MonoLabel>CLASSIFIED // PERSONAL</MonoLabel>
+            <MonoLabel>MISSION KAIRO // PRIVATE</MonoLabel>
             <MonoLabel>{date}</MonoLabel>
           </Inline>
         </CinematicReveal>
 
         <CinematicReveal delay={180} duration={500}>
           <Stack gap="x3" style={styles.titleBlock}>
-            <MonoLabel>MISSION FILE // WA-001</MonoLabel>
+            <MonoLabel>ACTIVE PROTOCOL // WA-001</MonoLabel>
             <TypewriterText
               delay={300}
               speed={58}
@@ -65,7 +65,7 @@ export default function WelcomeScreen() {
               text="WINTER ARC_"
               variant="display"
             />
-            <MonoLabel>SELF-COMMAND PROTOCOL // 90 DAYS</MonoLabel>
+            <MonoLabel>MISSION KAIRO // 90-DAY SELF-COMMAND</MonoLabel>
           </Stack>
         </CinematicReveal>
 
@@ -91,7 +91,7 @@ export default function WelcomeScreen() {
               onPress={() => router.push('/(auth)/sign-in')}
               variant="secondary"
             />
-            <MonoLabel style={styles.footer}>SECURE CHANNEL // DEVICE LOCKED</MonoLabel>
+            <MonoLabel style={styles.footer}>PRIVATE SESSION // ACCOUNT REQUIRED</MonoLabel>
           </Stack>
         </CinematicReveal>
       </Stack>

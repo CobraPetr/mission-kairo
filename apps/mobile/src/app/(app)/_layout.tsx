@@ -1,15 +1,9 @@
-import { Redirect, Tabs } from 'expo-router';
-import { Award, BarChart3, CircleDot, Map, UserRound } from 'lucide-react-native';
+import { Tabs } from 'expo-router';
+import { BarChart3, CircleDot, Map, UserRound } from 'lucide-react-native';
 
 import { colors, fontFamilies, layout } from '@/theme/tokens';
-import { useAuth } from '@/features/auth/auth-provider';
 
 export default function AppTabsLayout() {
-  const { status } = useAuth();
-
-  if (status === 'loading') return null;
-  if (status === 'guest') return <Redirect href="/(auth)/sign-in" />;
-
   return (
     <Tabs
       screenOptions={{
@@ -56,14 +50,6 @@ export default function AppTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="challenges"
-        options={{
-          tabBarAccessibilityLabel: 'Challenges',
-          tabBarIcon: ({ color, size }) => <Award color={color} size={size} strokeWidth={1.7} />,
-          title: 'Challenges',
-        }}
-      />
-      <Tabs.Screen
         name="progress"
         options={{
           tabBarAccessibilityLabel: 'Progress',
@@ -84,6 +70,7 @@ export default function AppTabsLayout() {
         }}
       />
       <Tabs.Screen name="mission" options={{ href: null }} />
+      <Tabs.Screen name="challenges" options={{ href: null }} />
       <Tabs.Screen name="ui-lab" options={{ href: null }} />
       <Tabs.Screen name="account" options={{ href: null }} />
     </Tabs>

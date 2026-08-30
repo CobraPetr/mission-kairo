@@ -5,11 +5,17 @@ export function getActiveWeekStartIndex(activeDay: number): number {
   return Math.floor((boundedDay - 1) / 7) * 7;
 }
 
-export function calculateSealedDayStreak(sealedDayNumbers: number[]): number {
+export function calculateSealedDayStreak(
+  sealedDayNumbers: number[],
+  missedDayNumbers: number[] = [],
+): number {
   const uniqueDays = [...new Set(sealedDayNumbers)]
     .filter((day) => Number.isInteger(day) && day >= 1 && day <= 90)
     .sort((left, right) => right - left);
   if (uniqueDays.length === 0) return 0;
+
+  const latestMissedDay = Math.max(0, ...missedDayNumbers);
+  if (latestMissedDay > uniqueDays[0]!) return 0;
 
   let streak = 1;
   for (let index = 1; index < uniqueDays.length; index += 1) {

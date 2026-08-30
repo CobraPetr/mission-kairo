@@ -375,7 +375,7 @@ export function MilitaryIdentityCard({
         >
           <Animated.View
             accessible
-            accessibilityLabel={`Winter Arc command card for ${displayName}, callsign ${callsign}, service number ${serviceNumber}`}
+            accessibilityLabel={`Mission Kairo command card for ${displayName}, callsign ${callsign}, service number ${serviceNumber}`}
             style={[
               styles.flipShell,
               cardShadow,
@@ -403,7 +403,7 @@ export function MilitaryIdentityCard({
               <Inline justify="space-between" style={styles.cardHeader}>
                 <View>
                   <AppText style={styles.commandTitle} variant="caption">
-                    WINTER ARC // COMMAND AUTHORITY
+                    MISSION KAIRO // COMMAND AUTHORITY
                   </AppText>
                   <AppText style={styles.commandSubtitle} variant="caption">
                     PERSONAL OPERATIVE IDENTIFICATION
@@ -594,7 +594,7 @@ export function MilitaryIdentityCard({
               </View>
 
               <AppText style={styles.authenticationNotice} variant="caption">
-                VERIFIED BY WINTER ARC COMMAND AUTHORITY
+                VERIFIED BY MISSION KAIRO COMMAND AUTHORITY
               </AppText>
             </Animated.View>
           </Animated.View>

@@ -94,6 +94,21 @@ values
     'training'
   );
 
+insert into public.plan_days (plan_id, user_id, day_number, kind)
+select fixture.plan_id, fixture.user_id, day_number, 'training'
+from (
+  values
+    (
+      '41000000-0000-0000-0000-000000000101'::uuid,
+      '10000000-0000-0000-0000-000000000101'::uuid
+    ),
+    (
+      '42000000-0000-0000-0000-000000000202'::uuid,
+      '20000000-0000-0000-0000-000000000202'::uuid
+    )
+) as fixture(plan_id, user_id)
+cross join generate_series(2, 90) as day_number;
+
 insert into public.plan_missions (
   id,
   plan_id,
@@ -145,6 +160,42 @@ insert into public.plan_missions (
     60,
     '[{"id":"timer","instruction":"Set a timer.","order":1},{"id":"walk","instruction":"Walk deliberately.","order":2}]'
   );
+
+insert into public.plan_missions (
+  plan_id,
+  plan_day_id,
+  user_id,
+  scheduled_key,
+  template_id,
+  ordinal,
+  title,
+  category,
+  source,
+  duration_minutes,
+  intensity,
+  minimum_age,
+  xp_reward,
+  steps
+)
+select
+  day.plan_id,
+  day.id,
+  day.user_id,
+  plan.plan_key || '.' || lpad(day.day_number::text, 2, '0') || '.fixture.' || ordinal || '.core',
+  'mindset.fixture-' || ordinal,
+  ordinal,
+  'Fixture mission ' || ordinal,
+  'mindset',
+  'core',
+  10,
+  'low',
+  14,
+  20,
+  '[{"id":"fixture","instruction":"Complete the fixture mission.","order":1}]'::jsonb
+from public.plan_days as day
+join public.plans as plan on plan.id = day.plan_id and plan.user_id = day.user_id
+cross join generate_series(1, 2) as ordinal
+where not (day.day_number = 1 and ordinal = 1);
 
 insert into public.arc_executions (
   plan_id,
@@ -210,18 +261,41 @@ insert into public.mission_progress (
 
 select throws_ok(
   $$
-    insert into public.plan_days (id, plan_id, user_id, day_number, kind)
-    values (
-      '53000000-0000-0000-0000-000000000303',
+    insert into public.plan_missions (
+      plan_id,
+      plan_day_id,
+      user_id,
+      scheduled_key,
+      template_id,
+      ordinal,
+      title,
+      category,
+      source,
+      duration_minutes,
+      intensity,
+      minimum_age,
+      xp_reward,
+      steps
+    ) values (
       '42000000-0000-0000-0000-000000000202',
+      '52000000-0000-0000-0000-000000000202',
       '10000000-0000-0000-0000-000000000101',
-      2,
-      'training'
+      'wa_bravo001.01.fixture.cross-owner.core',
+      'mindset.cross-owner',
+      3,
+      'Cross owner fixture',
+      'mindset',
+      'core',
+      10,
+      'low',
+      14,
+      20,
+      '[{"id":"fixture","instruction":"Complete the fixture mission.","order":1}]'
     )
   $$,
   '23503',
   null,
-  'composite ownership constraints reject a plan day assigned to the wrong user'
+  'composite ownership constraints reject a scheduled mission assigned to the wrong user'
 );
 
 select throws_ok(
@@ -273,13 +347,13 @@ select results_eq(
 
 select results_eq(
   $$ select count(*)::bigint from public.plan_days $$,
-  array[1::bigint],
+  array[90::bigint],
   'users can read only their own plan days'
 );
 
 select results_eq(
   $$ select count(*)::bigint from public.plan_missions $$,
-  array[1::bigint],
+  array[180::bigint],
   'users can read only their own scheduled missions'
 );
 
@@ -350,7 +424,7 @@ select throws_ok(
     select *
     from public.save_onboarding_draft(2, 'physical', '{}', 1, null)
   $$,
-  '40001',
+  'PT409',
   'Onboarding draft revision conflict',
   'stale draft saves are rejected'
 );
@@ -364,10 +438,12 @@ select results_eq(
 select results_eq(
   $$
     select awarded_xp::bigint
-    from public.complete_mission(
-      '61000000-0000-0000-0000-000000000101',
+    from public.execute_mission_command(
+      'advance',
+      'wa_alpha001.01.physical.baseline-walk.core',
+      1,
       '71000000-0000-0000-0000-000000000101',
-      1
+      timezone('utc', now())
     )
   $$,
   array[60::bigint],
@@ -389,27 +465,32 @@ select results_eq(
 select results_eq(
   $$
     select awarded_xp::bigint
-    from public.complete_mission(
-      '61000000-0000-0000-0000-000000000101',
+    from public.execute_mission_command(
+      'advance',
+      'wa_alpha001.01.physical.baseline-walk.core',
+      1,
       '71000000-0000-0000-0000-000000000101',
-      1
+      timezone('utc', now())
     )
   $$,
   array[60::bigint],
   'repeating an idempotency key returns the original award'
 );
 
-select results_eq(
+select throws_ok(
   $$
-    select awarded_xp::bigint
-    from public.complete_mission(
-      '61000000-0000-0000-0000-000000000101',
+    select *
+    from public.execute_mission_command(
+      'advance',
+      'wa_alpha001.01.physical.baseline-walk.core',
+      2,
       '71000000-0000-0000-0000-000000000102',
-      2
+      timezone('utc', now())
     )
   $$,
-  array[0::bigint],
-  'a completed mission cannot award XP under a new key'
+  '22023',
+  'Only the active mission can advance',
+  'a completed mission rejects a different command identity'
 );
 
 select results_eq(
@@ -421,14 +502,16 @@ select results_eq(
 select throws_ok(
   $$
     select *
-    from public.complete_mission(
-      '62000000-0000-0000-0000-000000000202',
+    from public.execute_mission_command(
+      'advance',
+      'wa_bravo001.01.physical.baseline-walk.core',
+      2,
       '71000000-0000-0000-0000-000000000202',
-      1
+      timezone('utc', now())
     )
   $$,
-  '42501',
-  'Mission is not available to this user',
+  '22023',
+  'Mission is not available today',
   'users cannot complete another user mission'
 );
 

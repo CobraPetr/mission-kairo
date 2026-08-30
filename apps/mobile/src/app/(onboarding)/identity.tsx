@@ -43,7 +43,6 @@ export default function IdentityScreen() {
     fullName: draft.identity.fullName,
     heightMajorInput: draft.identity.heightMajorInput,
     heightMinorInput: draft.identity.heightMinorInput,
-    phone: draft.identity.phone,
     unitSystem: draft.identity.unitSystem,
     username: draft.identity.username,
     weightInput: draft.identity.weightInput,
@@ -113,7 +112,7 @@ export default function IdentityScreen() {
         label="AGE"
         maxLength={3}
         onChangeText={(value) => update('ageInput', value.replace(/\D/g, ''))}
-        placeholder="14+"
+        placeholder="18+"
         value={form.ageInput}
       />
 
@@ -171,17 +170,6 @@ export default function IdentityScreen() {
           />
         </View>
       </Inline>
-
-      <TextField
-        autoComplete="tel"
-        hint="Required for the one-time security code. Never shown publicly."
-        inputMode="tel"
-        keyboardType="phone-pad"
-        label="PHONE // VERIFICATION"
-        onChangeText={(value) => update('phone', value)}
-        placeholder="+41 00 000 00 00"
-        value={form.phone}
-      />
     </OnboardingStep>
   );
 }

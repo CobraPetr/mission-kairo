@@ -11,15 +11,19 @@ import {
 import { AppState } from 'react-native';
 
 import { isBackendConfigured, requireSupabase, supabase } from '@/data/supabase/client';
+import { type DevelopmentAuthAdapter } from '@/features/boot/development-preview-adapter';
+import { type AuthFlowState } from '@/features/boot/resolve-initial-route';
 import { extractAuthCallbackParameters, isTrustedAuthCallbackUrl } from './auth-callback';
 
-type AuthStatus = 'loading' | 'guest' | 'authenticated' | 'unconfigured';
+export type AuthStatus = 'loading' | 'guest' | 'authenticated' | 'unconfigured' | 'error';
+export type AuthContinuationRoute = '/' | '/(app)/today';
 
 type AuthContextValue = {
+  authFlow: AuthFlowState;
   deleteAccount(): Promise<void>;
+  developmentPreview: boolean;
+  refreshSession(): Promise<AuthContinuationRoute | null>;
   requestPasswordReset(email: string): Promise<void>;
-  requestPhoneVerification(phone: string): Promise<void>;
-  resendPhoneVerification(phone: string): Promise<void>;
   resendVerification(email: string): Promise<void>;
   session: Session | null;
   signIn(email: string, password: string): Promise<void>;
@@ -28,13 +32,16 @@ type AuthContextValue = {
   status: AuthStatus;
   updatePassword(password: string): Promise<void>;
   user: User | null;
-  verifyPhoneVerification(phone: string, token: string): Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 const authRedirectUrl = Linking.createURL('auth/callback');
 const passwordResetRedirectUrl = Linking.createURL('auth/reset-password');
 const trustedAuthRedirectUrls = [authRedirectUrl, passwordResetRedirectUrl];
+
+type AuthProviderProps = PropsWithChildren<{
+  developmentAdapter: DevelopmentAuthAdapter;
+}>;
 
 async function consumeAuthUrl(url: string): Promise<void> {
   const client = requireSupabase();
@@ -46,7 +53,8 @@ async function consumeAuthUrl(url: string): Promise<void> {
   }
 }
 
-export function AuthProvider({ children }: PropsWithChildren) {
+export function AuthProvider({ children, developmentAdapter }: AuthProviderProps) {
+  const [authFlow, setAuthFlow] = useState<AuthFlowState>('standard');
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<AuthStatus>(
     isBackendConfigured ? 'loading' : 'unconfigured',
@@ -64,14 +72,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
       if (!mounted) return;
       if (error) {
         setSession(null);
-        setStatus('guest');
+        setStatus('error');
         return;
       }
       setSession(data.session);
       setStatus(data.session ? 'authenticated' : 'guest');
     });
 
-    const { data: authSubscription } = client.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: authSubscription } = client.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'PASSWORD_RECOVERY') setAuthFlow('passwordRecovery');
+      if (event === 'SIGNED_OUT') setAuthFlow('standard');
       setSession(nextSession);
       setStatus(nextSession ? 'authenticated' : 'guest');
     });
@@ -86,13 +96,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
       if (isTrustedAuthCallbackUrl(url, trustedAuthRedirectUrls)) {
-        void consumeAuthUrl(url).catch(() => undefined);
+        void consumeAuthUrl(url).catch(() => {
+          setSession(null);
+          setStatus('error');
+        });
       }
     });
 
     void Linking.getInitialURL().then((url) => {
       if (url && isTrustedAuthCallbackUrl(url, trustedAuthRedirectUrls)) {
-        void consumeAuthUrl(url).catch(() => undefined);
+        void consumeAuthUrl(url).catch(() => {
+          if (!mounted) return;
+          setSession(null);
+          setStatus('error');
+        });
       }
     });
 
@@ -107,11 +124,23 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const value = useMemo<AuthContextValue>(
     () => ({
+      authFlow,
       async deleteAccount() {
         const client = requireSupabase();
         const { error } = await client.functions.invoke('delete-account');
         if (error) throw error;
         await client.auth.signOut({ scope: 'local' });
+      },
+      developmentPreview: developmentAdapter.enabled,
+      async refreshSession() {
+        if (developmentAdapter.handle('refreshSession')) {
+          return developmentAdapter.continuationAfter('refreshSession');
+        }
+        const { data, error } = await requireSupabase().auth.getSession();
+        if (error) throw error;
+        setSession(data.session);
+        setStatus(data.session ? 'authenticated' : 'guest');
+        return data.session?.user.email_confirmed_at ? '/' : null;
       },
       async requestPasswordReset(email) {
         const { error } = await requireSupabase().auth.resetPasswordForEmail(email, {
@@ -119,18 +148,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         });
         if (error) throw error;
       },
-      async requestPhoneVerification(phone) {
-        const { error } = await requireSupabase().auth.updateUser({ phone });
-        if (error) throw error;
-      },
-      async resendPhoneVerification(phone) {
-        const { error } = await requireSupabase().auth.resend({
-          phone,
-          type: 'phone_change',
-        });
-        if (error) throw error;
-      },
       async resendVerification(email) {
+        if (developmentAdapter.handle('resendVerification')) return;
         const { error } = await requireSupabase().auth.resend({
           email,
           options: { emailRedirectTo: authRedirectUrl },
@@ -142,12 +161,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
       async signIn(email, password) {
         const { error } = await requireSupabase().auth.signInWithPassword({ email, password });
         if (error) throw error;
+        setAuthFlow('standard');
       },
       async signOut() {
         const { error } = await requireSupabase().auth.signOut();
         if (error) throw error;
       },
       async signUp(email, password, fullName) {
+        if (developmentAdapter.handle('signUp')) {
+          setAuthFlow('standard');
+          return;
+        }
         const { error } = await requireSupabase().auth.signUp({
           email,
           options: {
@@ -157,23 +181,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
           password,
         });
         if (error) throw error;
+        setAuthFlow('standard');
       },
       status,
       async updatePassword(password) {
         const { error } = await requireSupabase().auth.updateUser({ password });
         if (error) throw error;
+        setAuthFlow('standard');
       },
       user: session?.user ?? null,
-      async verifyPhoneVerification(phone, token) {
-        const { error } = await requireSupabase().auth.verifyOtp({
-          phone,
-          token,
-          type: 'phone_change',
-        });
-        if (error) throw error;
-      },
     }),
-    [session, status],
+    [authFlow, developmentAdapter, session, status],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

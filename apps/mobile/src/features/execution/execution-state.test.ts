@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   advanceMissionStep,
+  canSealExecutionDay,
   completeMissionOnce,
   createEmptyExecutionState,
   sealExecutionDay,
@@ -77,12 +78,26 @@ describe('mission completion', () => {
       completedMissionIds: [mission.scheduledId],
     };
     const day = { day: 90, kind: 'checkpoint' as const, missions: [mission] };
+    expect(canSealExecutionDay(state, day)).toBe(true);
     const first = sealExecutionDay(state, day);
     const duplicate = sealExecutionDay(first.state, day);
 
     expect(first.sealed).toBe(true);
     expect(first.state.sealedDayNumbers).toEqual([90]);
+    expect(canSealExecutionDay(first.state, day)).toBe(false);
     expect(duplicate.sealed).toBe(false);
     expect(duplicate.state).toBe(first.state);
+  });
+
+  it('never seals a calendar day already recorded as missed', () => {
+    const day = { day: 1, kind: 'training' as const, missions: [mission] };
+    const state = {
+      ...createEmptyExecutionState(),
+      completedMissionIds: [mission.scheduledId],
+      missedDayNumbers: [1],
+    };
+
+    expect(canSealExecutionDay(state, day)).toBe(false);
+    expect(sealExecutionDay(state, day)).toEqual({ sealed: false, state });
   });
 });

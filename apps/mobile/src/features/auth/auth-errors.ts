@@ -16,8 +16,14 @@ export function getAuthErrorMessage(error: unknown): string {
   if (message.includes('username is unavailable')) {
     return 'That callsign is already assigned. Return to Identity and choose another.';
   }
-  if (message.includes('verified email and phone required')) {
-    return 'Verify both your email and phone before activating the protocol.';
+  if (message.includes('verified email required')) {
+    return 'Verify your email before activating the protocol.';
+  }
+  if (message.includes('verified guardian approval required')) {
+    return 'Mission — Kairo is available to adults aged 18 or older during the public beta.';
+  }
+  if (message.includes('mission kairo beta requires age 18')) {
+    return 'Mission — Kairo is available to adults aged 18 or older during the public beta.';
   }
 
   return 'The secure channel could not complete the request. Try again.';

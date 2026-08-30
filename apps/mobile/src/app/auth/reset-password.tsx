@@ -30,7 +30,7 @@ export default function ResetPasswordScreen() {
     setLoading(true);
     try {
       await updatePassword(result.data.password);
-      router.replace('/(onboarding)');
+      router.replace('/');
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {

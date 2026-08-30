@@ -10,5 +10,5 @@ export function createServiceNumber(username: string): string {
   const digits = String(hash >>> 0)
     .padStart(10, '0')
     .slice(-8);
-  return `WA-01-${digits.slice(0, 4)}-${digits.slice(4)}`;
+  return `MK-01-${digits.slice(0, 4)}-${digits.slice(4)}`;
 }

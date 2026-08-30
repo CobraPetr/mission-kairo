@@ -1,11 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: '14.15';
-  };
   graphql_public: {
     Tables: {
       [_ in never]: never;
@@ -119,6 +114,59 @@ export type Database = {
             isOneToOne: true;
             referencedRelation: 'plan_days';
             referencedColumns: ['id', 'plan_id', 'user_id'];
+          },
+        ];
+      };
+      mission_command_receipts: {
+        Row: {
+          awarded_xp: number;
+          client_occurred_at: string;
+          command: string;
+          command_result: string;
+          execution_revision: number;
+          expected_revision: number;
+          idempotency_key: string;
+          plan_id: string;
+          received_at: string;
+          target_scheduled_key: string | null;
+          total_xp: number;
+          user_id: string;
+        };
+        Insert: {
+          awarded_xp: number;
+          client_occurred_at: string;
+          command: string;
+          command_result: string;
+          execution_revision: number;
+          expected_revision: number;
+          idempotency_key: string;
+          plan_id: string;
+          received_at?: string;
+          target_scheduled_key?: string | null;
+          total_xp: number;
+          user_id: string;
+        };
+        Update: {
+          awarded_xp?: number;
+          client_occurred_at?: string;
+          command?: string;
+          command_result?: string;
+          execution_revision?: number;
+          expected_revision?: number;
+          idempotency_key?: string;
+          plan_id?: string;
+          received_at?: string;
+          target_scheduled_key?: string | null;
+          total_xp?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'mission_command_receipts_plan_owner_fk';
+            columns: ['plan_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id', 'user_id'];
           },
         ];
       };
@@ -295,7 +343,7 @@ export type Database = {
           id: string;
           kind: string;
           plan_id: string;
-          scheduled_for: string | null;
+          scheduled_for: string;
           user_id: string;
         };
         Insert: {
@@ -304,7 +352,7 @@ export type Database = {
           id?: string;
           kind: string;
           plan_id: string;
-          scheduled_for?: string | null;
+          scheduled_for: string;
           user_id: string;
         };
         Update: {
@@ -313,7 +361,7 @@ export type Database = {
           id?: string;
           kind?: string;
           plan_id?: string;
-          scheduled_for?: string | null;
+          scheduled_for?: string;
           user_id?: string;
         };
         Relationships: [
@@ -402,7 +450,10 @@ export type Database = {
           id: string;
           onboarding_submission_id: string;
           plan_key: string;
+          seed_version: string | null;
           status: string;
+          time_zone: string;
+          time_zone_anchored_at: string | null;
           updated_at: string;
           user_id: string;
         };
@@ -416,7 +467,10 @@ export type Database = {
           id?: string;
           onboarding_submission_id: string;
           plan_key: string;
+          seed_version?: string | null;
           status?: string;
+          time_zone?: string;
+          time_zone_anchored_at?: string | null;
           updated_at?: string;
           user_id: string;
         };
@@ -430,7 +484,10 @@ export type Database = {
           id?: string;
           onboarding_submission_id?: string;
           plan_key?: string;
+          seed_version?: string | null;
           status?: string;
+          time_zone?: string;
+          time_zone_anchored_at?: string | null;
           updated_at?: string;
           user_id?: string;
         };
@@ -562,6 +619,24 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      activate_generated_protocol: {
+        Args: {
+          p_activation_key: string;
+          p_answers: Json;
+          p_assessment: Json;
+          p_plan: Json;
+          p_schema_version: number;
+          p_terms_accepted_at: string;
+          p_terms_version: string;
+          p_user_id: string;
+          p_username: string;
+        };
+        Returns: {
+          activated_plan_id: string;
+          activated_plan_key: string;
+          execution_revision: number;
+        }[];
+      };
       activate_protocol: {
         Args: {
           p_activation_key: string;
@@ -580,23 +655,28 @@ export type Database = {
           execution_revision: number;
         }[];
       };
-      complete_mission: {
+      apply_revenuecat_entitlement_event: {
         Args: {
-          p_expected_revision?: number;
-          p_idempotency_key: string;
-          p_plan_mission_id: string;
+          p_entitlement_id: string;
+          p_environment: string;
+          p_event_at: string;
+          p_event_id: string;
+          p_event_type: string;
+          p_expires_at: string;
+          p_product_id: string;
+          p_status: string;
+          p_user_id: string;
+          p_will_renew: boolean;
         };
-        Returns: {
-          awarded_xp: number;
-          execution_revision: number;
-          total_xp: number;
-        }[];
+        Returns: boolean;
       };
       execute_mission_command: {
         Args: {
+          p_client_occurred_at: string;
           p_command: string;
           p_expected_revision: number;
-          p_scheduled_key: string;
+          p_idempotency_key: string;
+          p_target_id: string;
         };
         Returns: {
           awarded_xp: number;
@@ -629,6 +709,18 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      set_plan_time_zone: {
+        Args: { p_plan_id: string; p_time_zone: string; p_user_id: string };
+        Returns: undefined;
+      };
+      sync_execution_calendar: {
+        Args: never;
+        Returns: {
+          active_day: number;
+          calendar_changed: boolean;
+          execution_revision: number;
+        }[];
       };
     };
     Enums: {

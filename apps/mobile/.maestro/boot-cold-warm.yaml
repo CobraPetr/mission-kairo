@@ -1,0 +1,36 @@
+appId: com.missionkairo.app
+name: Boot resolver preserves onboarding across cold and warm starts
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- extendedWaitUntil:
+    visible: 'WINTER ARC_'
+    timeout: 15000
+- assertVisible: 'Accept mission'
+- assertVisible: 'Restore access'
+- tapOn:
+    text: 'Accept mission'
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: 'Why are you starting now?'
+    timeout: 10000
+- tapOn: 'Your answer.*'
+- inputText: 'I am ready to rebuild my discipline.'
+- tapOn:
+    point: '80%,61%'
+- extendedWaitUntil:
+    visible: 'What keeps you from becoming who you should be?'
+    timeout: 10000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: 'WINTER ARC_'
+    timeout: 15000
+- tapOn:
+    text: 'Accept mission'
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: 'What keeps you from becoming who you should be?'
+    timeout: 10000
+- assertNotVisible: 'Why are you starting now?'

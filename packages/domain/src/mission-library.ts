@@ -1,5 +1,5 @@
-import { missionTemplateSchema } from './schemas';
-import type { MissionTemplate } from './models';
+import { missionTemplateSchema } from './schemas.ts';
+import type { MissionTemplate } from './models.ts';
 
 function mission(template: MissionTemplate): MissionTemplate {
   return missionTemplateSchema.parse(template);

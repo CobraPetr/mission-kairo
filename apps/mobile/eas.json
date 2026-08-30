@@ -18,7 +18,9 @@
       }
     },
     "production": {
+      "environment": "production",
       "autoIncrement": true,
+      "uploadSourceMaps": true,
       "env": {
         "EXPO_PUBLIC_APP_ENV": "production"
       }

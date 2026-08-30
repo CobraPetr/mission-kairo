@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  newPasswordSchema,
-  passwordResetSchema,
-  phoneVerificationCodeSchema,
-  phoneVerificationRequestSchema,
-  signInSchema,
-  signUpSchema,
-} from './auth-schemas';
+import { newPasswordSchema, passwordResetSchema, signInSchema, signUpSchema } from './auth-schemas';
 
 describe('authentication schemas', () => {
   it('normalizes email addresses', () => {
@@ -50,24 +43,6 @@ describe('authentication schemas', () => {
         confirmPassword: 'WinterArc91',
         password: 'WinterArc90',
       }).success,
-    ).toBe(false);
-  });
-
-  it('normalizes international phone numbers for SMS verification', () => {
-    expect(phoneVerificationRequestSchema.parse({ phone: '+41 79 123 45 67' }).phone).toBe(
-      '+41791234567',
-    );
-    expect(phoneVerificationRequestSchema.safeParse({ phone: '079 123 45 67' }).success).toBe(
-      false,
-    );
-  });
-
-  it('requires a six digit phone verification code', () => {
-    expect(
-      phoneVerificationCodeSchema.safeParse({ phone: '+41791234567', token: '123456' }).success,
-    ).toBe(true);
-    expect(
-      phoneVerificationCodeSchema.safeParse({ phone: '+41791234567', token: '1234' }).success,
     ).toBe(false);
   });
 });

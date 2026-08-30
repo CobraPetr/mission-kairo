@@ -47,7 +47,9 @@ export const supabaseOnboardingGateway: OnboardingCloudGateway = {
       p_section: draft.section,
     });
 
-    if (error?.code === '40001') throw new OnboardingRevisionConflictError();
+    if (error?.code === 'PT409' || error?.code === '40001') {
+      throw new OnboardingRevisionConflictError();
+    }
     if (error) throw error;
     if (!data) throw new Error('The onboarding draft was not saved.');
     if (data.user_id !== userId) throw new Error('Saved an onboarding draft for another user.');

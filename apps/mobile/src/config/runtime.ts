@@ -13,10 +13,13 @@ const optionalUrl = z.preprocess(
 const publicRuntimeSchema = z
   .object({
     appEnvironment: z.enum(['development', 'preview', 'production']).default('development'),
+    privacyPolicyUrl: optionalUrl,
+    revenueCatAndroidKey: optionalText,
+    revenueCatIosKey: optionalText,
+    supportUrl: optionalUrl,
     supabaseUrl: optionalUrl,
     supabasePublishableKey: optionalText,
-    revenueCatIosKey: optionalText,
-    revenueCatAndroidKey: optionalText,
+    termsUrl: optionalUrl,
   })
   .superRefine((value, context) => {
     const hasSupabaseUrl = value.supabaseUrl !== undefined;
@@ -45,6 +48,13 @@ const publicRuntimeSchema = z
           path: ['revenueCatIosKey'],
         });
       }
+      if (!value.privacyPolicyUrl || !value.termsUrl || !value.supportUrl) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Production builds require public privacy, terms, and support URLs.',
+          path: ['privacyPolicyUrl'],
+        });
+      }
     }
   });
 
@@ -52,29 +62,38 @@ export type PublicRuntimeConfig = z.infer<typeof publicRuntimeSchema>;
 
 type PublicEnvironmentSource = {
   EXPO_PUBLIC_APP_ENV?: string;
+  EXPO_PUBLIC_PRIVACY_POLICY_URL?: string;
   EXPO_PUBLIC_REVENUECAT_ANDROID_KEY?: string;
   EXPO_PUBLIC_REVENUECAT_IOS_KEY?: string;
+  EXPO_PUBLIC_SUPPORT_URL?: string;
   EXPO_PUBLIC_SUPABASE_ANON_KEY?: string;
   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string;
   EXPO_PUBLIC_SUPABASE_URL?: string;
+  EXPO_PUBLIC_TERMS_URL?: string;
 };
 
 export function parsePublicRuntimeConfig(source: PublicEnvironmentSource): PublicRuntimeConfig {
   return publicRuntimeSchema.parse({
     appEnvironment: source.EXPO_PUBLIC_APP_ENV,
+    privacyPolicyUrl: source.EXPO_PUBLIC_PRIVACY_POLICY_URL,
     revenueCatAndroidKey: source.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY,
     revenueCatIosKey: source.EXPO_PUBLIC_REVENUECAT_IOS_KEY,
+    supportUrl: source.EXPO_PUBLIC_SUPPORT_URL,
     supabasePublishableKey:
       source.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? source.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     supabaseUrl: source.EXPO_PUBLIC_SUPABASE_URL,
+    termsUrl: source.EXPO_PUBLIC_TERMS_URL,
   });
 }
 
 export const publicRuntimeConfig = parsePublicRuntimeConfig({
   EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV,
+  EXPO_PUBLIC_PRIVACY_POLICY_URL: process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL,
   EXPO_PUBLIC_REVENUECAT_ANDROID_KEY: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY,
   EXPO_PUBLIC_REVENUECAT_IOS_KEY: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY,
+  EXPO_PUBLIC_SUPPORT_URL: process.env.EXPO_PUBLIC_SUPPORT_URL,
   EXPO_PUBLIC_SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
+  EXPO_PUBLIC_TERMS_URL: process.env.EXPO_PUBLIC_TERMS_URL,
 });

@@ -4,6 +4,8 @@ import { CheckCircle2 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { getAuthErrorMessage } from '@/features/auth/auth-errors';
+import { useAuth } from '@/features/auth/auth-provider';
 import { useOnboarding } from '@/features/onboarding/onboarding-provider';
 import { usePlan } from '@/features/plan/plan-provider';
 import { colors, radii, spacing } from '@/theme/tokens';
@@ -22,11 +24,32 @@ import { ProtocolHeader } from '@/ui/patterns/protocol-header';
 import { SectionPanel } from '@/ui/patterns/section-panel';
 
 export default function PlanPreviewScreen() {
+  const { status } = useAuth();
   const { draft } = useOnboarding();
-  const { generate, hydrated, state } = usePlan();
+  const { activate, generate, hydrated, state } = usePlan();
   const [ceremonyComplete, setCeremonyComplete] = useState(false);
+  const [activating, setActivating] = useState(false);
+  const [activationError, setActivationError] = useState<string>();
 
   const completeCeremony = useCallback(() => setCeremonyComplete(true), []);
+
+  async function secureAndActivate() {
+    if (status !== 'authenticated') {
+      router.push('/(auth)/sign-up');
+      return;
+    }
+
+    setActivating(true);
+    setActivationError(undefined);
+    try {
+      await activate();
+      router.replace('/');
+    } catch (error) {
+      setActivationError(getAuthErrorMessage(error));
+    } finally {
+      setActivating(false);
+    }
+  }
 
   useEffect(() => {
     if (hydrated && state.status === 'idle') void generate();
@@ -156,7 +179,12 @@ export default function PlanPreviewScreen() {
           The plan adjusts through completion data and weekly reviews. It does not diagnose or treat
           medical or mental-health conditions.
         </AppText>
-        <Button label="Secure and activate" onPress={() => router.push('/(auth)/sign-up')} />
+        {activationError ? (
+          <AppText accessibilityRole="alert" color="danger" variant="bodySmall">
+            {activationError}
+          </AppText>
+        ) : null}
+        <Button label="Secure and activate" loading={activating} onPress={secureAndActivate} />
       </Stack>
     </SafeScreen>
   );

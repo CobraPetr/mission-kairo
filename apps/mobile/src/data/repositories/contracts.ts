@@ -22,6 +22,19 @@ export type SubscriptionEntitlement = {
   state: 'inactive' | 'trial' | 'active' | 'grace' | 'billingIssue' | 'expired';
 };
 
+export type PlanRecord = {
+  canonical: boolean;
+  plan: WinterArcPlan;
+};
+
+export type ExecutionCommandRequest = {
+  clientOccurredAt: string;
+  command: 'begin' | 'pause' | 'resume' | 'advance' | 'skip' | 'close_day';
+  expectedRevision: number;
+  idempotencyKey: string;
+  targetId: string | null;
+};
+
 export interface OnboardingRepository {
   claimGuestWorkspace(userId: string): Promise<void>;
   clear(ownerId: WorkspaceOwnerId): Promise<void>;
@@ -41,7 +54,7 @@ export interface ProfileRepository {
 export interface PlanRepository {
   claimGuestWorkspace(userId: string): Promise<void>;
   clear(ownerId: WorkspaceOwnerId): Promise<void>;
-  load(ownerId: WorkspaceOwnerId): Promise<WinterArcPlan | null>;
+  load(ownerId: WorkspaceOwnerId): Promise<PlanRecord | null>;
   save(ownerId: WorkspaceOwnerId, plan: WinterArcPlan): Promise<void>;
 }
 
@@ -50,9 +63,7 @@ export interface ExecutionRepository {
   clear(ownerId: WorkspaceOwnerId): Promise<void>;
   execute(
     userId: string,
-    command: 'begin' | 'pause' | 'resume' | 'advance' | 'skip' | 'close_day',
-    scheduledKey: string | null,
-    expectedRevision: number,
+    request: ExecutionCommandRequest,
   ): Promise<{
     result: 'active' | 'paused' | 'advanced' | 'completed' | 'skipped' | 'day_closed' | 'conflict';
     revision: number;

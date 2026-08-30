@@ -3,16 +3,16 @@ import { Check } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { publicRuntimeConfig } from '@/config/runtime';
 import { getAuthErrorMessage } from '@/features/auth/auth-errors';
 import { useAuth } from '@/features/auth/auth-provider';
 import { getFieldIssue, signUpSchema } from '@/features/auth/auth-schemas';
+import { openPublicDocument } from '@/features/legal/public-documents';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { AppText, Button, Inline, TextField } from '@/ui/primitives';
 import { AuthFormScreen } from '@/ui/patterns/auth-form-screen';
 
 export default function SignUpScreen() {
-  const { signUp, status } = useAuth();
+  const { signUp } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,11 +43,6 @@ export default function SignUpScreen() {
 
     setIssues({});
     setFormError(undefined);
-
-    if (publicRuntimeConfig.appEnvironment === 'development' && status === 'unconfigured') {
-      router.replace({ pathname: '/(auth)/verify', params: { email: result.data.email } });
-      return;
-    }
 
     setLoading(true);
     try {
@@ -125,10 +120,24 @@ export default function SignUpScreen() {
             style={styles.consent}
             variant="caption"
           >
-            I agree to the Terms and Privacy Policy and confirm that I am at least 14 years old.
+            I agree to the Terms and Privacy Policy and confirm that I am at least 18 years old.
           </AppText>
         </Inline>
       </Pressable>
+      <Inline gap="x3">
+        <Button
+          label="Terms"
+          onPress={() => void openPublicDocument('terms')}
+          style={styles.legalButton}
+          variant="ghost"
+        />
+        <Button
+          label="Privacy"
+          onPress={() => void openPublicDocument('privacy')}
+          style={styles.legalButton}
+          variant="ghost"
+        />
+      </Inline>
 
       {formError ? (
         <AppText accessibilityRole="alert" color="danger" variant="bodySmall">
@@ -158,4 +167,5 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: spacing.x1,
   },
+  legalButton: { flex: 1 },
 });
