@@ -143,7 +143,8 @@ Legend:
 - [-] Create and verify installable development builds.
   - [!] iOS build. Expo is linked, but Apple internal-distribution credentials and a registered test
     device must be completed interactively by the owner.
-  - [x] Android build. Signed APK build `68a28f83-06d7-43b4-98f7-64f12387195c` finished on EAS.
+  - [x] Android build. Signed APK build `5776102e-4b84-4409-a93c-3410e7651a6e` from the
+        release commit finished on EAS.
   - [!] Real-device launch check.
 
 ## 2. Application shell and design system
